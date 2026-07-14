@@ -5,10 +5,20 @@ compatibility_date = "2024-07-14"
 [vars]
 SITE_DOMAIN = "https://gk.minicode.cloud"
 HUPIJIA_APP_ID = "201906179658"
-HUPIJIA_APP_SECRET = "d097ec838557c0f3aaebc5c5a00a7aab"
-ADMIN_PASSWORD = "admin123"
+
+# 以下敏感配置通过 wrangler secret put 设置，不在 vars 中明文存储
+# HUPIJIA_APP_SECRET → wrangler secret put HUPIJIA_APP_SECRET
+# ADMIN_PASSWORD → wrangler secret put ADMIN_PASSWORD
+# DEEPSEEK_API_KEY → wrangler secret put DEEPSEEK_API_KEY
+
+# Cron: 每月1号 UTC 0点（北京时间8点）自动生成上月时政汇总
+[triggers]
+crons = ["0 0 1 * *"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "gk-db"
 database_id = "7e9e2bc1-cc6c-4889-8bcc-a697961559d4"
+
+# DEEPSEEK_API_KEY 通过 wrangler secret put DEEPSEEK_API_KEY 配置
+# 或在 Cloudflare Dashboard → Workers → gk-api → Settings → Variables 配置

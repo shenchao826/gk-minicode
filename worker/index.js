@@ -188,49 +188,43 @@ export default {
       return json({code:0,data:list.results});
     }
 
-    if (path === "/api/sms/send" && request.method === "POST") {
-      const body = await request.json();
-      const phone = body.phone;
-      const scene = body.scene || "register";
+    if (path === "/api/monthly-updates") {
+      const list = await env.DB.prepare("SELECT id,month,title,create_at FROM monthly_updates ORDER BY month DESC LIMIT 12").all();
+      return json({code:0,data:list.results});
+    }
 
-      if (!phone) return json({code:-1,msg:"请输入手机号"});
-      if (!/^1[3-9]\d{9}$/.test(phone)) return json({code:-1,msg:"手机号格式不正确"});
+    if (path === "/api/monthly-update/latest") {
+      const latest = await env.DB.prepare("SELECT * FROM monthly_updates ORDER BY month DESC LIMIT 1").first();
+      return json({code:0,data:latest});
+    }
 
-      const exist = await env.DB.prepare("SELECT id FROM sms_codes WHERE phone=? AND used=0 AND expires_at > CURRENT_TIMESTAMP").bind(phone).first();
-      if (exist) return json({code:-1,msg:"验证码已发送，请稍后再试"});
+    if (path.startsWith("/api/monthly-update/") && path !== "/api/monthly-update/latest") {
+      const month = path.split("/").pop();
+      const item = await env.DB.prepare("SELECT * FROM monthly_updates WHERE month=?").bind(month).first();
+      if (!item) return json({code:-1,msg:"未找到该月时政"});
 
-      const lastSend = await env.DB.prepare("SELECT create_at FROM sms_codes WHERE phone=? ORDER BY create_at DESC LIMIT 1").bind(phone).first();
-      if (lastSend) {
-        const lastTime = new Date(lastSend.create_at).getTime();
-        if (Date.now() - lastTime < 60000) return json({code:-1,msg:"发送过于频繁，请1分钟后再试"});
+      if (request.method === "POST") {
+        const body = await request.json();
+        const userId = Number(body.userId);
+        if (!userId) return json({code:-1,msg:"请登录后查看"});
+        const member = await env.DB.prepare("SELECT level FROM members WHERE user_id=? AND expire_at > CURRENT_TIMESTAMP").bind(userId).first();
+        if (!member || member.level === 0) return json({code:-1,msg:"需开通会员才能查看全文"});
+        return json({code:0,data:item});
       }
-
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-      await env.DB.prepare("INSERT INTO sms_codes (phone,code,scene,expires_at) VALUES (?,?,?,?)")
-        .bind(phone, code, scene, expiresAt).run();
-
-      console.log(`SMS code sent: phone=${phone}, code=${code}, scene=${scene}`);
-
-      return json({code:0,msg:"验证码已发送，请注意查收"});
+      return json({code:0,data:{...item, content:""}});
     }
 
-    if (path === "/api/sms/verify" && request.method === "POST") {
-      const body = await request.json();
-      const phone = body.phone;
-      const code = body.code;
-      const scene = body.scene || "register";
-
-      if (!phone || !code) return json({code:-1,msg:"参数错误"});
-
-      const sms = await env.DB.prepare("SELECT * FROM sms_codes WHERE phone=? AND code=? AND scene=? AND used=0 AND expires_at > CURRENT_TIMESTAMP").bind(phone, code, scene).first();
-      if (!sms) return json({code:-1,msg:"验证码无效或已过期"});
-
-      await env.DB.prepare("UPDATE sms_codes SET used=1 WHERE id=?").bind(sms.id).run();
-
-      return json({code:0,msg:"验证成功"});
+    if (path === "/api/admin/trigger-monthly" && request.method === "POST") {
+      if (!(await verifyAdminToken(env, request))) return json({code:-1,msg:"无权限"},401);
+      try {
+        await generateMonthlyUpdate(env);
+        return json({code:0,msg:"月度时政已生成"});
+      } catch(e) {
+        return json({code:-1,msg:"生成失败:"+e.message});
+      }
     }
+
+
 
     if (path === "/api/register" && request.method === "POST") {
       const body = await request.json();
@@ -268,8 +262,14 @@ export default {
       const exist = await env.DB.prepare("SELECT id FROM users WHERE phone=?").bind(phone).first();
       if (!exist) return json({code:-1,msg:"该手机号未注册"});
 
+      const lastReset = await env.DB.prepare("SELECT reset_at FROM users WHERE phone=?").bind(phone).first();
+      if (lastReset?.reset_at) {
+        const lastTime = new Date(lastReset.reset_at).getTime();
+        if (Date.now() - lastTime < 300000) return json({code:-1,msg:"重置过于频繁，请5分钟后再试"});
+      }
+
       const hashPwd = await sha256Hex(newPassword);
-      await env.DB.prepare("UPDATE users SET password=? WHERE phone=?").bind(hashPwd, phone).run();
+      await env.DB.prepare("UPDATE users SET password=?, reset_at=CURRENT_TIMESTAMP WHERE phone=?").bind(hashPwd, phone).run();
 
       return json({code:0,msg:"密码重置成功，请登录"});
     }
@@ -405,7 +405,9 @@ export default {
       return json({code:0,data:{
         ...distributor,
         referralCount: referralCount.cnt,
-        referralOrderCount: referralOrderCount.cnt
+        referralOrderCount: referralOrderCount.cnt,
+        totalCommission: distributor.total_commission,
+        availableCommission: distributor.available_commission
       }});
     }
 
@@ -476,12 +478,23 @@ export default {
       if (password !== adminPwd) return json({code:-1,msg:"密码错误"},401);
       
       const token = await sha256Hex(password + Date.now() + Math.random());
+      const expireAt = new Date(Date.now() + 86400000).toISOString();
+      await env.DB.prepare("INSERT OR REPLACE INTO admin_tokens (token, expire_at) VALUES (?,?)")
+        .bind(token, expireAt).run();
       return json({code:0,data:{token,expireAt: Date.now() + 86400000}});
     }
 
-    if (path === "/api/admin") {
+    async function verifyAdminToken(env, request) {
       const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1,msg:"无权限"},401);
+      if (!auth) return false;
+      const token = auth.replace("Bearer ", "");
+      const t = await env.DB.prepare("SELECT expire_at FROM admin_tokens WHERE token=? AND expire_at > CURRENT_TIMESTAMP")
+        .bind(token).first();
+      return !!t;
+    }
+
+    if (path === "/api/admin") {
+      if (!(await verifyAdminToken(env, request))) return json({code:-1,msg:"无权限"},401);
 
       if (request.method === "POST") {
         const b = await request.json();
@@ -497,8 +510,7 @@ export default {
     }
 
     if (path === "/api/admin/distributors") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
 
       if (request.method === "PUT") {
         const b = await request.json();
@@ -520,8 +532,7 @@ export default {
     }
 
     if (path === "/api/admin/referral-orders") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
 
       const res = await env.DB.prepare(`
         SELECT ro.*,o.pay_amount,o.create_at as order_create_at,u.phone as user_phone,du.phone as distributor_phone
@@ -535,8 +546,7 @@ export default {
     }
 
     if (path === "/api/admin/card" && request.method === "POST") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
       const b = await request.json();
       const lines = b.text.trim().split("\n");
       const gId = Number(b.goodsId);
@@ -550,8 +560,7 @@ export default {
     }
 
     if (path === "/api/admin/goods" && request.method === "PUT") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
       const b = await request.json();
       await env.DB.prepare("UPDATE goods SET title=?,price=?,description=?,sort=? WHERE id=?")
         .bind(b.title,b.price,b.desc,b.sort,b.id).run();
@@ -559,16 +568,14 @@ export default {
     }
 
     if (path === "/api/admin/goods" && request.method === "DELETE") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
       const b = await request.json();
       await env.DB.prepare("DELETE FROM goods WHERE id=?").bind(b.id).run();
       return json({code:0});
     }
 
     if (path === "/api/admin/cards") {
-      const auth = request.headers.get("Authorization");
-      if (!auth) return json({code:-1},401);
+      if (!(await verifyAdminToken(env, request))) return json({code:-1},401);
       const params = new URLSearchParams(url.search);
       const goodsId = params.get("goodsId");
       const used = params.get("used");
@@ -583,6 +590,10 @@ export default {
     }
 
     return new Response("Not Found",{status:404});
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(generateMonthlyUpdate(env));
   }
 };
 
@@ -625,10 +636,10 @@ async function handleReferralCommission(env, order) {
 
   const commissionAmount = parseFloat((order.pay_amount * distributor.commission_rate).toFixed(2));
   await env.DB.prepare("INSERT INTO referral_orders (order_id,user_id,distributor_id,commission_amount,status) VALUES (?,?,?,?,?)")
-    .bind(order.trade_id, order.user_id, distributor.id, commissionAmount, 0).run();
+    .bind(order.trade_id, order.user_id, order.referrer_id, commissionAmount, 0).run();
 
-  await env.DB.prepare("UPDATE distributors SET total_commission = total_commission + ?, available_commission = available_commission + ? WHERE id=?")
-    .bind(commissionAmount, commissionAmount, distributor.id).run();
+  await env.DB.prepare("UPDATE distributors SET total_commission = total_commission + ?, available_commission = available_commission + ? WHERE user_id=?")
+    .bind(commissionAmount, commissionAmount, order.referrer_id).run();
 }
 
 async function updateMemberTotalSpent(env, userId, amount) {
@@ -654,4 +665,100 @@ async function handleMemberPurchase(env, userId, level) {
 
   await env.DB.prepare("UPDATE members SET level=?, expire_at=?, update_at=CURRENT_TIMESTAMP WHERE user_id=?")
     .bind(level, expireAt, userId).run();
+}
+
+// ====== 月度时政自动生成（Cron触发 + 红线限制提示词）======
+
+async function generateMonthlyUpdate(env) {
+  const now = new Date();
+  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const year = prevMonth.getFullYear();
+  const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
+  const monthKey = `${year}-${month}`;
+
+  // 幂等：同月不重复生成
+  const exist = await env.DB.prepare("SELECT id FROM monthly_updates WHERE month=?").bind(monthKey).first();
+  if (exist) {
+    console.log(`月度时政 ${monthKey} 已存在，跳过`);
+    return;
+  }
+
+  if (!env.DEEPSEEK_API_KEY) {
+    console.error("未配置 DEEPSEEK_API_KEY，无法生成月度时政");
+    return;
+  }
+
+  const systemPrompt = `你是一名公考时政资料编辑，负责整理公务员考试时政热点。
+
+【红线规则 - 必须严格遵守】
+1. 只整理公开新闻报道和官方发布的内容，绝不编造任何政策、数据、会议
+2. 不涉及敏感政治话题评论，不议论政策导向
+3. 禁用词汇：押题、真题、绝密、内部、命中、预测、泄漏
+4. 保持客观中立，只陈述事实，不做主观评价
+5. 不评论领导人个人，只整理政策要点和工作部署
+6. 只整理公考可考的知识点，剔除娱乐、体育等无关新闻
+7. 内容来源限定：人民日报、新华社、央视新闻、政府官网公开信息
+8. 涉及法律法规只引用正式发布内容，不解读立法意图
+9. 涉及经济数据只引用国家统计局等官方发布，不添加分析预测
+
+【输出格式】
+输出纯HTML（不含html/body标签），结构如下：
+<div class="monthly-section"><h2>一、重要会议与政策</h2>
+  <div class="topic"><h3>考点标题</h3><p class="topic-content">核心内容</p><p class="exam-tip">🔥 考试角度：考查方向提示</p></div>
+</div>
+板块包含：重要会议与政策、科技与经济成就、民生与社会热点、新法新规、国际要闻
+每个板块至少2个考点，总共15-20个考点。`;
+
+  const userPrompt = `请整理${year}年${month}月的时政高频考点汇总。
+要求：
+1. 每个考点包含标题、核心内容、考试角度提示
+2. 内容精炼，适合公考备考速记
+3. 总字数3000-5000字
+4. 直接输出HTML，不要markdown标记
+5. 如该月无重大时政，可适当补充近期持续性热点`;
+
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 8000
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error(`DeepSeek API 错误: ${response.status}`, errText);
+    return;
+  }
+
+  const result = await response.json();
+  const content = result.choices?.[0]?.message?.content || '';
+
+  if (!content) {
+    console.error("DeepSeek 返回空内容");
+    return;
+  }
+
+  // 红线词二次过滤
+  const bannedWords = ['押题', '真题', '绝密', '内部', '命中', '预测', '泄漏'];
+  let safeContent = content;
+  for (const word of bannedWords) {
+    safeContent = safeContent.replace(new RegExp(word, 'g'), '★');
+  }
+
+  const title = `${year}年${month}月时政高频考点汇总`;
+
+  await env.DB.prepare("INSERT INTO monthly_updates (month,title,content) VALUES (?,?,?)")
+    .bind(monthKey, title, safeContent).run();
+
+  console.log(`月度时政 ${monthKey} 生成成功`);
 }

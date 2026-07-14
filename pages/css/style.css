@@ -440,6 +440,99 @@ body {
   background: #1E8450;
 }
 
+/* 月度时政更新 */
+.monthly-section {
+  background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%);
+  padding: 40px;
+  border-radius: 18px;
+  margin-bottom: 60px;
+}
+.monthly-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.monthly-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.monthly-item:hover {
+  box-shadow: 0 2px 12px rgba(22, 61, 140, 0.12);
+  transform: translateX(4px);
+}
+.monthly-item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.monthly-badge {
+  background: #163D8C;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.monthly-title {
+  font-size: 15px;
+  color: #2D3748;
+  font-weight: 500;
+}
+.monthly-arrow {
+  font-size: 14px;
+  color: #163D8C;
+  white-space: nowrap;
+}
+
+/* 月度时政详情弹窗内容 */
+.monthly-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #2D3748;
+  padding: 8px 4px;
+}
+.monthly-content h2 {
+  font-size: 18px;
+  color: #163D8C;
+  margin: 20px 0 12px 0;
+  padding-left: 10px;
+  border-left: 3px solid #163D8C;
+}
+.monthly-content h2:first-child {
+  margin-top: 0;
+}
+.monthly-content h3 {
+  font-size: 15px;
+  color: #2D3748;
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+}
+.monthly-content .topic {
+  background: #F7F9FC;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.monthly-content .topic-content {
+  color: #4A5568;
+  margin-bottom: 8px;
+}
+.monthly-content .exam-tip {
+  color: #E67722;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .faq-wrap {
   max-width: 800px;
   margin: 0 auto;
@@ -673,10 +766,10 @@ body {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  .goods-card {
+  .goods-item {
     padding: 20px;
   }
-  .goods-card .goods-price {
+  .goods-item .price {
     font-size: 22px;
   }
   .member-cards {

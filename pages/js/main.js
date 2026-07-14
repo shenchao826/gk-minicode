@@ -169,9 +169,10 @@ async function buyMember(level) {
 window.onload = async () => {
   loadGoods();
   loadMemberConfig();
+  loadMonthlyUpdates();
   checkLogin();
   initFAQ();
-  
+
   const params = new URLSearchParams(location.hash.slice(1));
   const tid = params.get("tid");
   if (tid) {
@@ -179,6 +180,65 @@ window.onload = async () => {
     showOrder(tid);
   }
 };
+
+// ====== 月度时政更新 ======
+
+async function loadMonthlyUpdates() {
+  try {
+    const res = await fetch(`${apiPrefix}/monthly-updates`).then(r => r.json());
+    const wrap = document.getElementById("monthlyList");
+    if (res.code !== 0 || !res.data || res.data.length === 0) {
+      wrap.innerHTML = `<div style="text-align:center;padding:40px;color:#A0AEC0">暂无月度更新，每月1号自动生成</div>`;
+      return;
+    }
+    wrap.innerHTML = res.data.map(item => `
+      <div class="monthly-item" onclick="viewMonthly('${item.month}')">
+        <div class="monthly-item-left">
+          <span class="monthly-badge">${item.month}</span>
+          <span class="monthly-title">${item.title}</span>
+        </div>
+        <span class="monthly-arrow">查看 →</span>
+      </div>
+    `).join("");
+  } catch(e) {
+    document.getElementById("monthlyList").innerHTML = `<div style="text-align:center;padding:40px;color:#A0AEC0">加载失败，请稍后刷新</div>`;
+  }
+}
+
+async function viewMonthly(month) {
+  const modal = document.getElementById("monthlyModal");
+  const title = document.getElementById("monthlyModalTitle");
+  const body = document.getElementById("monthlyModalBody");
+
+  title.textContent = "加载中...";
+  body.innerHTML = "";
+  modal.classList.add("show");
+
+  if (!currentUser) {
+    title.textContent = "请先登录";
+    body.innerHTML = "<p>查看时政详情需要登录账号，请先登录。</p>";
+    return;
+  }
+
+  const res = await fetch(`${apiPrefix}/monthly-update/${month}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: currentUser.id })
+  }).then(r => r.json());
+
+  if (res.code !== 0 || !res.data) {
+    title.textContent = "查看失败";
+    body.innerHTML = `<p>${res.msg || "未找到该月时政内容"}</p>`;
+    return;
+  }
+
+  title.textContent = res.data.title;
+  body.innerHTML = res.data.content || "<p>暂无内容，请开通会员后查看完整时政汇总。</p>";
+}
+
+function closeMonthlyModal() {
+  document.getElementById("monthlyModal").classList.remove("show");
+}
 
 function initFAQ() {
   document.querySelectorAll('.faq-q').forEach(q => {
@@ -276,41 +336,6 @@ async function doLogin() {
   updateUserArea();
   closeLoginModal();
   alert("登录成功");
-}
-
-async function sendCode() {
-  const phone = document.getElementById("regPhone").value;
-  
-  if (!phone) return alert("请输入手机号");
-  if (!isValidPhone(phone)) return alert("请输入正确的手机号");
-  
-  const res = await fetch(`${apiPrefix}/sms/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone, scene: "register" })
-  }).then(r => r.json());
-  
-  if (res.code !== 0) return alert(res.msg);
-  
-  alert("验证码已发送，请注意查收");
-  
-  const btn = document.getElementById("sendCodeBtn");
-  let count = 60;
-  btn.disabled = true;
-  btn.style.opacity = "0.6";
-  btn.textContent = `${count}秒后重发`;
-  
-  const timer = setInterval(() => {
-    count--;
-    if (count <= 0) {
-      clearInterval(timer);
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      btn.textContent = "获取验证码";
-    } else {
-      btn.textContent = `${count}秒后重发`;
-    }
-  }, 1000);
 }
 
 async function doRegister() {

@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
   avatar TEXT DEFAULT '',
   invite_code TEXT UNIQUE,
   referrer_id INTEGER DEFAULT 0,
+  reset_at TIMESTAMP,
   create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL UNIQUE,
-  level TINYINT DEFAULT 1,
+  level TINYINT DEFAULT 0,
   expire_at TIMESTAMP,
   total_spent REAL DEFAULT 0,
   create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -93,15 +94,21 @@ CREATE TABLE IF NOT EXISTS member_config (
   sort INTEGER DEFAULT 0
 );
 
--- 验证码表
-CREATE TABLE IF NOT EXISTS sms_codes (
+
+
+-- 月度时政更新表（Cron自动生成）
+CREATE TABLE IF NOT EXISTS monthly_updates (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  phone TEXT NOT NULL,
-  code TEXT NOT NULL,
-  scene TEXT NOT NULL,
-  expires_at TIMESTAMP NOT NULL,
-  used TINYINT DEFAULT 0,
+  month TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
   create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 管理员token表
+CREATE TABLE IF NOT EXISTS admin_tokens (
+  token TEXT PRIMARY KEY,
+  expire_at TIMESTAMP NOT NULL
 );
 
 -- 创建索引
@@ -119,9 +126,9 @@ CREATE INDEX IF NOT EXISTS idx_sms_codes_phone ON sms_codes(phone);
 
 -- 初始化会员等级配置
 INSERT OR IGNORE INTO member_config (level, name, price, duration_days, discount, benefits, sort) VALUES 
-(1, '普通会员', 19.9, 30, 0.95, '全场95折优惠、免费获取时政月度更新', 3),
-(2, 'VIP会员', 49.9, 90, 0.90, '全场9折优惠、免费获取时政月度更新、优先获取新资料、专属备考计划指导', 2),
-(3, '至尊会员', 99.9, 365, 0.85, '全场85折优惠、免费获取全站所有资料、时政月度更新、优先获取新资料、专属备考计划指导、一对一学习咨询', 1);
+(1, '普通会员', 39.9, 90, 0.95, '全场95折优惠、免费获取时政月度更新', 3),
+(2, 'VIP会员', 99, 365, 0.90, '全场9折优惠、免费获取时政月度更新、优先获取新资料、专属备考计划指导', 2),
+(3, '至尊会员', 199, 3650, 0.85, '全场85折优惠、免费获取全站所有资料、时政月度更新、优先获取新资料、专属备考计划指导、一对一学习咨询', 1);
 
 -- 初始化商品数据（5个核心商品）
 INSERT OR IGNORE INTO goods (title, price, description, sort) VALUES 

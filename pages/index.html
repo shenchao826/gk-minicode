@@ -55,6 +55,14 @@
       <div class="member-cards" id="memberCards"></div>
     </section>
 
+    <section class="monthly-section" id="monthlyUpdate">
+      <h2 class="section-title">📅 时政月度更新</h2>
+      <p class="section-desc">每月自动生成时政高频考点，会员免费查看</p>
+      <div class="monthly-list" id="monthlyList">
+        <div style="text-align:center;padding:40px;color:#A0AEC0">加载中...</div>
+      </div>
+    </section>
+
     <section class="distributor-section" id="distributor">
       <h2 class="section-title">💰 分销返佣计划</h2>
       <p class="section-desc">邀请好友购买，轻松赚取佣金</p>
@@ -246,6 +254,14 @@
         <button class="buy-btn" onclick="doWithdraw()">申请提现</button>
       </div>
       <button class="btn-close" onclick="closeDistModal()">关闭</button>
+    </div>
+  </div>
+
+  <div class="modal" id="monthlyModal">
+    <div class="modal-box" style="max-width:720px">
+      <h2 id="monthlyModalTitle">时政详情</h2>
+      <div class="monthly-content" id="monthlyModalBody"></div>
+      <button class="btn-close" onclick="closeMonthlyModal()">关闭</button>
     </div>
   </div>
 
