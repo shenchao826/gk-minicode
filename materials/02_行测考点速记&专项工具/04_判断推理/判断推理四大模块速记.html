@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>判断推理四大模块速记</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: "SimSun", "Microsoft YaHei", serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 2cm;
+        }
+        
+        h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5cm;
+            color: #000;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 1cm;
+            margin-bottom: 0.5cm;
+            color: #000;
+        }
+        
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 0.8cm;
+            margin-bottom: 0.3cm;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 0.5cm;
+            margin-bottom: 0.2cm;
+        }
+        
+        p {
+            margin: 0.3cm 0;
+            text-indent: 2em;
+        }
+        
+        ul, ol {
+            margin: 0.3cm 0;
+            padding-left: 1.5em;
+        }
+        
+        li {
+            margin: 0.2cm 0;
+        }
+        
+        li ul, li ol {
+            margin: 0.1cm 0;
+            padding-left: 1em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5cm 0;
+            font-size: 11pt;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 0.3cm;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #333;
+            padding-left: 0.5cm;
+            margin: 0.5cm 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        code {
+            font-family: "Courier New", monospace;
+            background-color: #f5f5f5;
+            padding: 0.1cm 0.2cm;
+            border-radius: 3px;
+            font-size: 11pt;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 0.5cm;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: "Courier New", monospace;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #ccc;
+            margin: 1cm 0;
+        }
+        
+        strong {
+            font-weight: bold;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                font-size: 11pt;
+            }
+            
+            h1 {
+                font-size: 22pt;
+            }
+            
+            h2 {
+                font-size: 15pt;
+            }
+            
+            h3 {
+                font-size: 13pt;
+            }
+            
+            .container {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>判断推理四大模块速记</h1>
+<h2>一、图形推理</h2>
+<h3>（一）位置规律</h3>
+<h4>1. 平移</h4>
+<strong>核心要点</strong>：方向、步数、路径
+<table>
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>方向</td><td>上下、左右、对角线、顺时针、逆时针</td><td>元素沿水平方向移动</td></tr>
+<tr><td>步数</td><td>恒定步数、递增步数、递减步数</td><td>每次移动1格、2格、3格...</td></tr>
+<tr><td>路径</td><td>循环（到头返回）、反弹（到头反向）</td><td>元素从左到右循环移动</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：从所给选项中，选择最合适的一个填入问号处，使之呈现一定规律性：
+<p>图1：●在左上角</p>
+<p>图2：●在右上角</p>
+<p>图3：●在右下角</p>
+<p>图4：●在左下角</p>
+<p>图5：？</p>
+<p>答案：●回到左上角，呈顺时针移动规律</p>
+</code></pre>
+<h4>2. 旋转</h4>
+<strong>核心要点</strong>：方向、角度
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>方向</td><td>顺时针、逆时针</td><td>图形顺时针旋转</td></tr>
+<tr><td>角度</td><td>45°、90°、180°、270°</td><td>每次旋转90°</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：图形每次顺时针旋转90°，下一个图形应是原图形旋转90°后的样子
+</code></pre>
+<h4>3. 翻转</h4>
+<strong>核心要点</strong>：水平翻转、垂直翻转
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>水平翻转</td><td>左右翻转，像照镜子</td><td>"b"水平翻转后像"d"</td></tr>
+<tr><td>垂直翻转</td><td>上下翻转</td><td>"b"垂直翻转后像"p"</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：图形先水平翻转，再垂直翻转，下一个图形应是原图形垂直翻转后的样子
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>元素每次向右移动2格，到头后回到左边继续，第5个图元素位置？</li><li>图形每次逆时针旋转45°，第4个图的样子？</li><li>图形先水平翻转，再垂直翻转，第3个图的样子？</li></ol>
+<hr>
+<h3>（二）样式规律</h3>
+<h4>1. 遍历</h4>
+<strong>核心要点</strong>：元素重复出现，缺啥补啥
+<strong>例题示范</strong>：
+<pre><code>例：第一行：○△□
+<p>    第二行：□○△</p>
+<p>    第三行：△□？</p>
+    
+<p>答案：○（每行都包含○△□，第三行缺少○）</p>
+</code></pre>
+<h4>2. 加减同异</h4>
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>相加</td><td>两个图形叠加</td><td>图1+图2=图3</td></tr>
+<tr><td>相减</td><td>图1减去图2的部分</td><td>图1-图2=图3</td></tr>
+<tr><td>求同</td><td>保留相同部分</td><td>保留图1和图2都有的部分</td></tr>
+<tr><td>求异</td><td>保留不同部分</td><td>保留图1和图2不同的部分</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：图1和图2求异得到图3
+<p>图1：○△</p>
+<p>图2：○□</p>
+<p>图3：△□（保留不同的△和□）</p>
+</code></pre>
+<h4>3. 黑白运算</h4>
+<strong>核心要点</strong>：黑+黑、黑+白、白+黑、白+白
+<strong>例题示范</strong>：
+<pre><code>例：已知：黑+白=黑，白+黑=黑，黑+黑=白，白+白=白
+<p>图1：黑块+图2：白块=图3：黑块</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>第一组：图1+图2=图3，第二组按此规律，图3应为？</li><li>第一组：图1和图2求同得到图3，第二组按此规律，图3应为？</li><li>黑白运算：黑+黑=白，白+白=黑，黑+白=黑，求图3？</li></ol>
+<hr>
+<h3>（三）数量规律</h3>
+<h4>1. 点</h4>
+<strong>核心要点</strong>：交点数、切点、端点
+<strong>例题示范</strong>：
+<pre><code>例：图形交点数依次为1、2、3、4、？，下一个图形应有5个交点
+</code></pre>
+<h4>2. 线</h4>
+<strong>核心要点</strong>：直线数、曲线数、笔画数
+<strong>笔画数判断方法</strong>：
+<ul><li>奇点：从该点出发的线条数为奇数</li><li>笔画数=奇点数÷2（奇点为0或2时，为一笔画）</li></ul>
+<strong>例题示范</strong>：
+<pre><code>例：图形笔画数依次为1、2、1、2、？，下一个图形应为一笔画图形
+</code></pre>
+<h4>3. 角</h4>
+<strong>核心要点</strong>：直角数、锐角数、钝角数
+<strong>例题示范</strong>：
+<pre><code>例：图形直角数依次为1、2、3、4、？，下一个图形应有5个直角
+</code></pre>
+<h4>4. 面</h4>
+<strong>核心要点</strong>：封闭区域数、面积大小
+<strong>例题示范</strong>：
+<pre><code>例：图形面数依次为1、2、3、4、？，下一个图形应有5个面
+</code></pre>
+<h4>5. 素</h4>
+<strong>核心要点</strong>：元素个数、种类数、部分数
+<strong>例题示范</strong>：
+<pre><code>例：图形元素种类数依次为1、2、3、4、？，下一个图形应有5种元素
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>图形交点数依次为2、3、4、5、？，下一个图形应有几个交点？</li><li>判断图形是否为一笔画图形：☆（五角星）</li><li>图形面数依次为3、4、5、6、？，下一个图形应有几个面？</li></ol>
+<hr>
+<h3>（四）属性规律</h3>
+<h4>1. 对称性</h4>
+<strong>核心要点</strong>：轴对称、中心对称、轴+中心对称
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>轴对称</td><td>沿对称轴折叠后重合</td><td>★、等腰三角形</td></tr>
+<tr><td>中心对称</td><td>绕中心旋转180°后重合</td><td>◇、平行四边形</td></tr>
+<tr><td>轴+中心对称</td><td>同时满足轴对称和中心对称</td><td>○、□</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：所有图形都是轴对称图形，且对称轴数量依次增加
+</code></pre>
+<h4>2. 曲直性</h4>
+<strong>核心要点</strong>：全直、全曲、曲直混合
+<strong>例题示范</strong>：
+<pre><code>例：第一组全直，第二组全曲，第三组曲直混合
+</code></pre>
+<h4>3. 开闭性</h4>
+<strong>核心要点</strong>：全封闭、全开放、半开半闭
+<strong>例题示范</strong>：
+<pre><code>例：图形依次为全封闭、全开放、全封闭、全开放、？，下一个应为全封闭
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>判断图形对称性：☆（五角星）、◇（菱形）、○（圆）</li><li>图形曲直性依次为全直、全曲、全直、全曲、？，下一个应为？</li><li>图形开闭性依次为全封闭、全开放、半开半闭、全封闭、？，下一个应为？</li></ol>
+<hr>
+<h3>（五）空间规律</h3>
+<h4>1. 六面体</h4>
+<strong>核心要点</strong>：相对面不相邻、相邻面位置关系、公共点法
+<strong>相对面判断方法</strong>：
+<ul><li>同行或同列隔一个面</li><li>"Z"字形两端的面</li></ul>
+<strong>相邻面判断方法</strong>：
+<ul><li>看公共边、公共点</li><li>看面内元素的相对位置</li></ul>
+<strong>例题示范</strong>：
+<pre><code>例：左边给定的是正方体的外表面展开图，右边哪一项能由它折叠而成？
+</code></pre>
+<h4>2. 三视图</h4>
+<strong>核心要点</strong>：主视图、俯视图、左视图
+<strong>例题示范</strong>：
+<pre><code>例：左边立体图形，右边哪一项是它的主视图？
+</code></pre>
+<h4>3. 截面图</h4>
+<strong>核心要点</strong>：常见立体图形截面
+<tr><td>立体图形</td><td>可能的截面</td><td>不可能的截面</td></tr>
+<tr><td>正方体</td><td>正方形、长方形、三角形、六边形</td><td>直角三角形</td></tr>
+<tr><td>圆柱</td><td>圆形、长方形、椭圆形</td><td>三角形</td></tr>
+<tr><td>圆锥</td><td>圆形、三角形、椭圆形</td><td>长方形</td></tr>
+<strong>练习题</strong>：
+<ol><li>判断正方体展开图中哪两个面是相对面</li><li>画出圆柱的主视图和俯视图</li><li>判断正方体能否截出直角三角形</li></ol>
+<hr>
+<h2>二、类比推理</h2>
+<h3>（一）语义关系</h3>
+<h4>1. 近义词</h4>
+<strong>例题示范</strong>：
+<pre><code>例：美丽∶漂亮
+<p>A. 快乐∶高兴</p>
+<p>B. 悲伤∶愤怒</p>
+<p>C. 聪明∶愚蠢</p>
+<p>D. 勇敢∶懦弱</p>
+<p>答案：A（美丽和漂亮是近义词，快乐和高兴也是近义词）</p>
+</code></pre>
+<h4>2. 反义词</h4>
+<strong>例题示范</strong>：
+<pre><code>例：聪明∶愚蠢
+<p>A. 美丽∶漂亮</p>
+<p>B. 快乐∶悲伤</p>
+<p>C. 勇敢∶英勇</p>
+<p>D. 善良∶友善</p>
+<p>答案：B（聪明和愚蠢是反义词，快乐和悲伤也是反义词）</p>
+</code></pre>
+<h4>3. 比喻象征</h4>
+<strong>例题示范</strong>：
+<pre><code>例：玫瑰∶爱情
+<p>A. 百合∶纯洁</p>
+<p>B. 菊花∶坚强</p>
+<p>C. 牡丹∶富贵</p>
+<p>D. 梅花∶傲骨</p>
+<p>答案：A（玫瑰象征爱情，百合象征纯洁）</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>认真∶仔细（选择近义词）</li><li>前进∶后退（选择反义词）</li><li>鸽子∶和平（选择比喻象征关系）</li></ol>
+<hr>
+<h3>（二）逻辑关系</h3>
+<h4>1. 全同关系</h4>
+<strong>例题示范</strong>：
+<pre><code>例：土豆∶马铃薯
+<p>A. 番茄∶西红柿</p>
+<p>B. 苹果∶香蕉</p>
+<p>C. 牛奶∶酸奶</p>
+<p>D. 米饭∶面条</p>
+<p>答案：A（土豆和马铃薯是同一事物的不同名称）</p>
+</code></pre>
+<h4>2. 并列关系</h4>
+<strong>矛盾关系 vs 反对关系</strong>：
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>矛盾关系</td><td>非此即彼，没有第三种可能</td><td>生-死、男-女</td></tr>
+<tr><td>反对关系</td><td>有第三种可能</td><td>红-蓝、苹果-香蕉</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例1（矛盾关系）：生∶死
+<p>例2（反对关系）：红∶蓝</p>
+</code></pre>
+<h4>3. 包容关系</h4>
+<strong>组成关系 vs 种属关系</strong>：
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>组成关系</td><td>整体与部分</td><td>电脑-键盘、汽车-轮胎</td></tr>
+<tr><td>种属关系</td><td>大类与小类</td><td>水果-苹果、动物-猫</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例1（组成关系）：电脑∶键盘
+<p>例2（种属关系）：水果∶苹果</p>
+</code></pre>
+<h4>4. 交叉关系</h4>
+<strong>例题示范</strong>：
+<pre><code>例：党员∶教师
+<p>A. 男人∶女人</p>
+<p>B. 医生∶护士</p>
+<p>C. 青年∶学生</p>
+<p>D. 工人∶农民</p>
+<p>答案：C（有的党员是教师，有的教师是党员，交叉关系）</p>
+</code></pre>
+<h4>5. 对应关系</h4>
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>功能对应</td><td>事物的用途</td><td>剪刀-裁剪、汽车-运输</td></tr>
+<tr><td>场所对应</td><td>事物所在的地点</td><td>医生-医院、学生-学校</td></tr>
+<tr><td>时间顺序</td><td>事件发生的先后顺序</td><td>播种-收获、日出-日落</td></tr>
+<tr><td>因果关系</td><td>原因和结果</td><td>下雨-地湿、努力-成功</td></tr>
+<tr><td>原材料对应</td><td>制作事物的材料</td><td>面粉-面包、木材-桌子</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例1（功能对应）：剪刀∶裁剪
+<p>例2（因果关系）：下雨∶地湿</p>
+<p>例3（原材料对应）：面粉∶面包</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>北京∶中国首都（全同关系）</li><li>老虎∶动物（种属关系）</li><li>轮胎∶汽车（组成关系）</li><li>作家∶青年（交叉关系）</li><li>牙刷∶刷牙（功能对应）</li></ol>
+<hr>
+<h3>（三）语法关系</h3>
+<h4>1. 主谓关系</h4>
+<strong>例题示范</strong>：
+<pre><code>例：阳光∶明媚
+<p>A. 天空∶晴朗</p>
+<p>B. 大地∶辽阔</p>
+<p>C. 花朵∶鲜艳</p>
+<p>D. 以上都对</p>
+<p>答案：D（阳光明媚是主谓关系，天空晴朗、大地辽阔、花朵鲜艳都是主谓关系）</p>
+</code></pre>
+<h4>2. 动宾关系</h4>
+<strong>例题示范</strong>：
+<pre><code>例：打扫∶房间
+<p>A. 整理∶书桌</p>
+<p>B. 阅读∶书籍</p>
+<p>C. 写作∶文章</p>
+<p>D. 以上都对</p>
+<p>答案：D（打扫房间是动宾关系，整理书桌、阅读书籍、写作文章都是动宾关系）</p>
+</code></pre>
+<h4>3. 偏正关系</h4>
+<strong>例题示范</strong>：
+<pre><code>例：美丽∶风景
+<p>A. 灿烂∶阳光</p>
+<p>B. 辽阔∶草原</p>
+<p>C. 清澈∶河水</p>
+<p>D. 以上都对</p>
+<p>答案：D（美丽的风景是偏正关系，灿烂的阳光、辽阔的草原、清澈的河水都是偏正关系）</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>树叶∶飘落（主谓关系）</li><li>驾驶∶汽车（动宾关系）</li><li>可爱∶小猫（偏正关系）</li></ol>
+<hr>
+<h2>三、定义判断</h2>
+<h3>（一）抓关键词法</h3>
+<strong>核心关键词</strong>：
+<tr><td>关键词类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>主体</td><td>动作的发出者</td><td>政府、企业、个人、组织</td></tr>
+<tr><td>客体</td><td>动作的承受者</td><td>消费者、学生、患者</td></tr>
+<tr><td>条件</td><td>前提、假设、限定词</td><td>在...条件下、当...时</td></tr>
+<tr><td>方式</td><td>通过、利用、按照</td><td>通过网络、利用技术</td></tr>
+<tr><td>目的</td><td>为了、达到、实现</td><td>为了提高效率、达到目标</td></tr>
+<tr><td>结果</td><td>导致、造成、产生</td><td>导致经济增长、造成环境污染</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：行政决策是指行政机关及其工作人员为了实现行政目标，依照法律规定的权限和程序，对涉及公共利益的事项作出决定的行为。
+<p>关键词：</p>
+<ul><li>主体：行政机关及其工作人员</li><li>目的：实现行政目标</li><li>方式：依照法律规定的权限和程序</li><li>对象：涉及公共利益的事项</li><li>结果：作出决定</li></ul>
+<p>选项判断：</p>
+<p>A. 某企业制定发展规划（主体不符，排除）</p>
+<p>B. 某行政机关对公共交通票价作出调整（符合所有关键词，正确）</p>
+<p>C. 某个人决定购买商品（主体不符，排除）</p>
+</code></pre>
+<h3>（二）做题步骤</h3>
+<ol><li><strong>看提问</strong>：明确选是题还是选非题</li><li><strong>读题干</strong>：划出核心关键词</li><li><strong>对比选项</strong>：逐一匹配关键词</li></ol>
+<strong>例题示范</strong>：
+<pre><code>例：题目要求：选出属于"故意杀人"的选项
+<p>题干定义：故意杀人是指故意非法剥夺他人生命的行为。</p>
+<p>关键词：故意、非法、剥夺他人生命</p>
+<p>选项A：张三不小心导致他人死亡（不是故意，排除）</p>
+<p>选项B：李四故意非法剥夺他人生命（符合所有关键词，正确）</p>
+<p>选项C：王五依法执行死刑（不是非法，排除）</p>
+</code></pre>
+<h3>（三）快速排除技巧</h3>
+<tr><td>技巧</td><td>说明</td><td>示例</td></tr>
+<tr><td>主体不符</td><td>选项中的主体与定义中的主体不一致</td><td>定义主体是政府，选项主体是企业</td></tr>
+<tr><td>无关键词</td><td>选项中缺少定义的核心要素</td><td>定义要求"故意"，选项没有体现</td></tr>
+<tr><td>矛盾表述</td><td>选项与定义中的某个关键词冲突</td><td>定义要求"非法"，选项是"合法"</td></tr>
+<strong>练习题</strong>：
+<ol><li>定义：教育是指教育者根据一定的社会要求，有目的、有计划、有组织地对受教育者的身心施加影响，使其朝着所期望的方向发展的活动。</li></ol>
+<p>   - 选项：父母教孩子说话（是否属于教育？）</p>
+<ol><li>定义：商品是指用于交换的劳动产品。</li></ol>
+<p>   - 选项：农民种的自己吃的蔬菜（是否属于商品？）</p>
+<hr>
+<h2>四、逻辑判断</h2>
+<h3>（一）翻译推理</h3>
+<h4>1. 翻译规则</h4>
+<tr><td>关联词</td><td>翻译方式</td><td>示例</td></tr>
+<tr><td>如果A，那么B</td><td>A→B</td><td>如果下雨，地就湿（下雨→地湿）</td></tr>
+<tr><td>只有A，才B</td><td>B→A</td><td>只有努力，才能成功（成功→努力）</td></tr>
+<tr><td>只要A，就B</td><td>A→B</td><td>只要坚持，就能胜利（坚持→胜利）</td></tr>
+<tr><td>除非A，否则B</td><td>¬A→B</td><td>除非学习，否则落后（¬学习→落后）</td></tr>
+<tr><td>A是B的必要条件</td><td>B→A</td><td>努力是成功的必要条件（成功→努力）</td></tr>
+<tr><td>A是B的充分条件</td><td>A→B</td><td>下雨是地湿的充分条件（下雨→地湿）</td></tr>
+<h4>2. 推理规则</h4>
+<strong>核心推理规则</strong>：
+<tr><td>规则</td><td>说明</td><td>示例</td></tr>
+<tr><td>逆否等价</td><td>A→B ≡ ¬B→¬A</td><td>如果下雨→地湿，那么地不湿→没下雨</td></tr>
+<tr><td>传递规则</td><td>A→B，B→C → A→C</td><td>如果下雨→地湿，地湿→路滑，那么下雨→路滑</td></tr>
+<tr><td>否定前件</td><td>A→B，¬A → 不确定</td><td>如果下雨→地湿，没下雨，地可能湿也可能不湿</td></tr>
+<tr><td>肯定后件</td><td>A→B，B → 不确定</td><td>如果下雨→地湿，地湿了，可能下雨也可能没下雨</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：如果天下雨，地面就会湿。地面没有湿，所以（ ）
+<p>解：下雨→地湿，逆否等价：¬地湿→¬下雨</p>
+<p>答案：天没有下雨</p>
+</code></pre>
+<h4>3. 联言命题</h4>
+<strong>核心要点</strong>：
+<ul><li><strong>A且B</strong>：全真才真，一假即假</li><li><strong>矛盾</strong>：¬A或¬B</li></ul>
+<strong>例题示范</strong>：
+<pre><code>例：小张既会唱歌又会跳舞（唱歌且跳舞）
+<p>矛盾：小张不会唱歌或不会跳舞</p>
+</code></pre>
+<h4>4. 选言命题</h4>
+<strong>核心要点</strong>：
+<ul><li><strong>A或B</strong>：一真即真，全假才假</li><li><strong>矛盾</strong>：¬A且¬B</li><li><strong>否定肯定式</strong>：A或B，¬A → B</li></ul>
+<strong>例题示范</strong>：
+<pre><code>例：小张或者会唱歌，或者会跳舞（唱歌或跳舞）
+<p>否定肯定式：如果小张不会唱歌，那么他会跳舞</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>如果努力学习，就能考上公务员。小王考上了公务员，所以小王努力学习了（是否正确？）</li><li>只有身体健康，才能参加比赛。小李参加了比赛，所以小李身体健康（是否正确？）</li><li>除非下雨，否则比赛正常进行。比赛没有正常进行，所以下雨了（是否正确？）</li><li>小张会唱歌且会跳舞的矛盾命题是什么？</li><li>小张会唱歌或会跳舞的否定肯定式是什么？</li></ol>
+<hr>
+<h3>（二）加强削弱</h3>
+<h4>1. 加强方式</h4>
+<tr><td>方式</td><td>力度</td><td>说明</td><td>示例</td></tr>
+<tr><td>搭桥</td><td>最强</td><td>建立论据与论点的联系</td><td>论据：小明成绩好，论点：小明能考上大学，搭桥：成绩好的人能考上大学</td></tr>
+<tr><td>补充论据</td><td>中等</td><td>增加新证据支持论点</td><td>论点：运动有益健康，补充论据：研究表明运动能降低心脏病风险</td></tr>
+<tr><td>必要条件</td><td>中等</td><td>没有它论点不成立</td><td>论点：要成功必须努力，必要条件：不努力一定不会成功</td></tr>
+<tr><td>举例论证</td><td>较弱</td><td>通过例子支持</td><td>论点：努力能成功，举例：张三努力后成功了</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：论点：多吃水果有益健康
+<p>论据：水果富含维生素</p>
+<p>加强方式：</p>
+<ol><li>搭桥：维生素对健康有益</li><li>补充论据：研究表明多吃水果的人免疫力更强</li><li>必要条件：不吃水果会导致维生素缺乏</li><li>举例论证：小明每天吃水果，身体很健康</li></ol>
+</code></pre>
+<h4>2. 削弱方式</h4>
+<tr><td>方式</td><td>力度</td><td>说明</td><td>示例</td></tr>
+<tr><td>拆桥</td><td>最强</td><td>切断论据与论点的联系</td><td>论据：小明成绩好，论点：小明能考上大学，拆桥：成绩好的人不一定能考上大学</td></tr>
+<tr><td>否定论点</td><td>最强</td><td>直接反驳论点</td><td>论点：运动有益健康，否定：运动对健康没有好处</td></tr>
+<tr><td>否定论据</td><td>中等</td><td>质疑论据真实性</td><td>论点：运动有益健康，论据：研究表明运动有益，否定论据：该研究不科学</td></tr>
+<tr><td>因果倒置</td><td>较强</td><td>指出因果关系颠倒</td><td>论点：因为运动所以健康，因果倒置：因为健康所以运动</td></tr>
+<tr><td>另有他因</td><td>中等</td><td>提出其他原因</td><td>论点：因为运动所以健康，另有他因：健康是因为饮食好</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：论点：喝牛奶能长高
+<p>论据：喝牛奶的孩子比不喝牛奶的孩子长得高</p>
+<p>削弱方式：</p>
+<ol><li>拆桥：喝牛奶和长高之间没有必然联系</li><li>否定论点：喝牛奶不能让人长高</li><li>否定论据：该研究样本不具有代表性</li><li>因果倒置：不是因为喝牛奶所以长高，而是因为长高才喝牛奶</li><li>另有他因：喝牛奶的孩子营养更好，所以长高</li></ol>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>论点：读书能提高智力，论据：读书多的人智力测试得分高，如何加强？</li><li>论点：吸烟导致肺癌，论据：吸烟的人肺癌发病率高，如何削弱？</li></ol>
+<hr>
+<h3>（三）真假推理</h3>
+<h4>1. 找矛盾关系</h4>
+<strong>常见矛盾关系</strong>：
+<tr><td>类型</td><td>矛盾关系</td><td>示例</td></tr>
+<tr><td>A和¬A</td><td>A和非A</td><td>小明是学生和小明不是学生</td></tr>
+<tr><td>A且B和¬A或¬B</td><td>A且B和非A或非B</td><td>小明既聪明又努力和小明不聪明或不努力</td></tr>
+<tr><td>A或B和¬A且¬B</td><td>A或B和非A且非B</td><td>小明聪明或努力和小明不聪明且不努力</td></tr>
+<tr><td>所有A是B和有的A不是B</td><td>所有A是B和有的A不是B</td><td>所有学生都努力和有的学生不努力</td></tr>
+<tr><td>有的A是B和所有A不是B</td><td>有的A是B和所有A不是B</td><td>有的学生努力和所有学生都不努力</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：甲说："我是学生"，乙说："甲不是学生"，已知只有一人说真话，则（ ）
+<p>解：甲和乙的话是矛盾关系（A和¬A），必有一真一假</p>
+<p>因为只有一人说真话，所以甲说假话，乙说真话</p>
+<p>答案：甲不是学生</p>
+</code></pre>
+<h4>2. 找反对关系</h4>
+<strong>常见反对关系</strong>：
+<tr><td>类型</td><td>说明</td><td>示例</td></tr>
+<tr><td>所有A是B和所有A不是B</td><td>至少一假</td><td>所有学生都努力和所有学生都不努力</td></tr>
+<tr><td>有的A是B和有的A不是B</td><td>至少一真</td><td>有的学生努力和有的学生不努力</td></tr>
+<strong>例题示范</strong>：
+<pre><code>例：甲说："所有学生都努力"，乙说："所有学生都不努力"，已知只有一人说假话，则（ ）
+<p>解：甲和乙的话是反对关系（所有A是B和所有A不是B），至少一假</p>
+<p>因为只有一人说假话，所以甲说真话，乙说假话</p>
+<p>答案：所有学生都努力</p>
+</code></pre>
+<h4>3. 假设验证</h4>
+<strong>例题示范</strong>：
+<pre><code>例：甲、乙、丙三人中只有一人会开车
+<p>甲说："我会开车"</p>
+<p>乙说："我不会开车"</p>
+<p>丙说："甲不会开车"</p>
+<p>已知只有一人说真话，则（ ）</p>
+<p>解：假设甲说真话（甲会开车），则乙和丙都说假话</p>
+<p>乙说假话→乙会开车，与只有一人会开车矛盾</p>
+<p>假设乙说真话（乙不会开车），则甲和丙都说假话</p>
+<p>甲说假话→甲不会开车，丙说假话→甲会开车，矛盾</p>
+<p>假设丙说真话（甲不会开车），则甲和乙都说假话</p>
+<p>甲说假话→甲不会开车，乙说假话→乙会开车，符合条件</p>
+<p>答案：乙会开车</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>甲说："今天下雨"，乙说："今天不下雨"，已知只有一人说真话，今天是否下雨？</li><li>甲说："所有同学都及格了"，乙说："有的同学没及格"，已知只有一人说真话，同学是否都及格了？</li></ol>
+<hr>
+<h3>（四）分析推理</h3>
+<h4>1. 排除法</h4>
+<strong>例题示范</strong>：
+<pre><code>例：甲、乙、丙三人分别来自北京、上海、广州
+<p>甲不是北京人，乙不是上海人，丙是广州人</p>
+<p>问三人分别来自哪里？</p>
+<p>解：丙是广州人（确定）</p>
+<p>甲不是北京人→甲是上海人</p>
+<p>乙不是上海人→乙是北京人</p>
+<p>答案：甲-上海，乙-北京，丙-广州</p>
+</code></pre>
+<h4>2. 最大信息法</h4>
+<strong>例题示范</strong>：
+<pre><code>例：甲、乙、丙三人分别从事教师、医生、律师职业
+<p>甲和医生不同岁，医生比乙年轻，丙比律师年龄大</p>
+<p>问三人分别从事什么职业？</p>
+<p>解：医生出现次数最多（2次），从医生入手</p>
+<p>甲和医生不同岁→甲不是医生</p>
+<p>医生比乙年轻→乙不是医生→丙是医生</p>
+<p>丙（医生）比乙年轻，丙比律师年龄大→乙不是律师→乙是教师</p>
+<p>甲是律师</p>
+<p>答案：甲-律师，乙-教师，丙-医生</p>
+</code></pre>
+<h4>3. 列表法</h4>
+<strong>例题示范</strong>：
+<pre><code>例：甲、乙、丙、丁四人分别喜欢篮球、足球、羽毛球、乒乓球
+<p>甲不喜欢篮球，乙喜欢足球，丙不喜欢羽毛球，丁喜欢乒乓球</p>
+<p>问四人分别喜欢什么运动？</p>
+<p>解：列表整理：</p>
+<p>    篮球 足球 羽毛球 乒乓球</p>
+<p>甲  ×    ?    ?      ?</p>
+<p>乙  ?    √    ?      ?</p>
+<p>丙  ?    ?    ×      ?</p>
+<p>丁  ?    ?    ?      √</p>
+<p>乙喜欢足球，丁喜欢乒乓球</p>
+<p>甲不喜欢篮球→甲喜欢羽毛球</p>
+<p>丙喜欢篮球</p>
+<p>答案：甲-羽毛球，乙-足球，丙-篮球，丁-乒乓球</p>
+</code></pre>
+<h4>4. 假设法</h4>
+<strong>例题示范</strong>：
+<pre><code>例：甲、乙、丙三人中有一人是小偷
+<p>甲说："我不是小偷"</p>
+<p>乙说："甲是小偷"</p>
+<p>丙说："我不是小偷"</p>
+<p>已知只有一人说假话，则小偷是谁？</p>
+<p>解：假设甲是小偷，则甲说假话，乙说真话，丙说真话，符合条件</p>
+<p>假设乙是小偷，则甲说真话，乙说假话，丙说真话，符合条件</p>
+<p>假设丙是小偷，则甲说真话，乙说假话，丙说假话，不符合条件</p>
+<p>需要更多条件才能确定，题目条件不足</p>
+</code></pre>
+<strong>练习题</strong>：
+<ol><li>甲、乙、丙三人分别是教师、医生、工程师，甲比医生年龄大，乙和工程师不同岁，工程师比丙年龄小，问三人职业？</li><li>甲、乙、丙、丁四人分别住在1-4楼，甲不住1楼，乙住2楼，丙不住3楼，丁住4楼，问四人分别住几楼？</li></ol>
+<hr>
+<h2>五、判断推理答题技巧</h2>
+<h3>（一）时间分配</h3>
+<ul><li>图形推理：每题40-50秒</li><li>类比推理：每题30-40秒</li><li>定义判断：每题1分钟</li><li>逻辑判断：每题1-1.5分钟</li></ul>
+<h3>（二）答题策略</h3>
+<ol><li><strong>先易后难</strong>：先做类比推理和定义判断，再做图形推理和逻辑判断</li><li><strong>排除法优先</strong>：通过排除明显错误选项提高正确率</li><li><strong>抓关键词</strong>：定义判断和逻辑判断中，抓住核心关键词</li></ol>
+<h3>（三）常见陷阱</h3>
+<ol><li><strong>翻译推理陷阱</strong>：混淆充分条件和必要条件</li><li><strong>加强削弱陷阱</strong>：偷换概念、无关选项</li><li><strong>真假推理陷阱</strong>：矛盾关系和反对关系混淆</li><li><strong>分析推理陷阱</strong>：信息遗漏、假设错误</li></ol>
+<hr>
+<h2>六、必背逻辑公式</h2>
+<h3>（一）翻译推理</h3>
+<ul><li><strong>A→B</strong> 的逆否命题：<strong>¬B→¬A</strong></li><li><strong>A且B</strong> 的矛盾：<strong>¬A或¬B</strong></li><li><strong>A或B</strong> 的矛盾：<strong>¬A且¬B</strong></li><li><strong>A或B</strong> 的否定肯定式：<strong>¬A→B</strong>，<strong>¬B→A</strong></li></ul>
+<h3>（二）模态命题</h3>
+<ul><li><strong>必然A</strong> 的矛盾：<strong>可能¬A</strong></li><li><strong>可能A</strong> 的矛盾：<strong>必然¬A</strong></li><li><strong>必然A</strong> 的等价：<strong>不可能¬A</strong></li><li><strong>可能A</strong> 的等价：<strong>不必然¬A</strong></li></ul>
+<h3>（三）集合推理</h3>
+<ul><li><strong>所有A是B</strong> → <strong>有的B是A</strong></li><li><strong>所有A不是B</strong> → <strong>所有B不是A</strong></li><li><strong>有的A是B</strong> → <strong>有的B是A</strong></li><li><strong>有的A不是B</strong> 不能推出 <strong>有的B不是A</strong></li></ul>
+<h3>（四）矛盾关系速记</h3>
+<tr><td>原命题</td><td>矛盾命题</td></tr>
+<tr><td>A</td><td>¬A</td></tr>
+<tr><td>A且B</td><td>¬A或¬B</td></tr>
+<tr><td>A或B</td><td>¬A且¬B</td></tr>
+<tr><td>所有A是B</td><td>有的A不是B</td></tr>
+<tr><td>有的A是B</td><td>所有A不是B</td></tr>
+<tr><td>必然A</td><td>可能¬A</td></tr>
+<tr><td>可能A</td><td>必然¬A</td></tr>
+<hr>
+<h2>七、思维导图大纲</h2>
+<pre><code>判断推理
+<p>├── 图形推理</p>
+<p>│   ├── 位置规律</p>
+<p>│   │   ├── 平移</p>
+<p>│   │   ├── 旋转</p>
+<p>│   │   └── 翻转</p>
+<p>│   ├── 样式规律</p>
+<p>│   │   ├── 遍历</p>
+<p>│   │   ├── 加减同异</p>
+<p>│   │   └── 黑白运算</p>
+<p>│   ├── 数量规律</p>
+<p>│   │   ├── 点</p>
+<p>│   │   ├── 线（笔画数）</p>
+<p>│   │   ├── 角</p>
+<p>│   │   ├── 面</p>
+<p>│   │   └── 素</p>
+<p>│   ├── 属性规律</p>
+<p>│   │   ├── 对称性</p>
+<p>│   │   ├── 曲直性</p>
+<p>│   │   └── 开闭性</p>
+<p>│   └── 空间规律</p>
+<p>│       ├── 六面体</p>
+<p>│       ├── 三视图</p>
+<p>│       └── 截面图</p>
+<p>├── 类比推理</p>
+<p>│   ├── 语义关系</p>
+<p>│   │   ├── 近义词</p>
+<p>│   │   ├── 反义词</p>
+<p>│   │   └── 比喻象征</p>
+<p>│   ├── 逻辑关系</p>
+<p>│   │   ├── 全同关系</p>
+<p>│   │   ├── 并列关系（矛盾/反对）</p>
+<p>│   │   ├── 包容关系（组成/种属）</p>
+<p>│   │   ├── 交叉关系</p>
+<p>│   │   └── 对应关系（功能/场所/因果/原材料）</p>
+<p>│   └── 语法关系</p>
+<p>│       ├── 主谓关系</p>
+<p>│       ├── 动宾关系</p>
+<p>│       └── 偏正关系</p>
+<p>├── 定义判断</p>
+<p>│   ├── 抓关键词法（主体/客体/条件/方式/目的/结果）</p>
+<p>│   ├── 做题步骤（看提问→读题干→对比选项）</p>
+<p>│   └── 快速排除技巧（主体不符/无关键词/矛盾表述）</p>
+<p>└── 逻辑判断</p>
+<p>    ├── 翻译推理</p>
+<p>    │   ├── 翻译规则（如果/只有/只要/除非）</p>
+<p>    │   ├── 推理规则（逆否等价/传递/否定前件/肯定后件）</p>
+<p>    │   ├── 联言命题（A且B）</p>
+<p>    │   └── 选言命题（A或B）</p>
+<p>    ├── 加强削弱</p>
+<p>    │   ├── 加强方式（搭桥/补充论据/必要条件/举例）</p>
+<p>    │   └── 削弱方式（拆桥/否定论点/否定论据/因果倒置/另有他因）</p>
+<p>    ├── 真假推理</p>
+<p>    │   ├── 矛盾关系（A和¬A/所有和有的）</p>
+<p>    │   ├── 反对关系（所有和所有/有的和有的）</p>
+<p>    │   └── 假设验证</p>
+<p>    └── 分析推理</p>
+<p>        ├── 排除法</p>
+<p>        ├── 最大信息法</p>
+<p>        ├── 列表法</p>
+<p>        └── 假设法</p>
+</code></pre>
+</table>
+    </div>
+</body>
+</html>

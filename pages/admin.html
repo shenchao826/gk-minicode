@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗策工具箱 - 后台管理</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#F7F9FC;color:#2D3748}
+.wrap{min-height:100vh;display:flex}
+.sidebar{width:240px;background:#163D8C;color:#fff;padding:20px;position:fixed;height:100vh}
+.sidebar h1{font-size:20px;margin-bottom:30px}
+.sidebar a{display:block;color:#fff;text-decoration:none;padding:12px 16px;margin-bottom:8px;border-radius:8px;transition:0.2s}
+.sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,0.15)}
+.main{flex:1;margin-left:240px;padding:30px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.header h2{color:#163D8C}
+.logout-btn{padding:8px 16px;background:#EDF2F7;border:none;border-radius:6px;cursor:pointer;color:#4A5568}
+.logout-btn:hover{background:#E2E8F0}
+.card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:24px}
+.card h3{margin-bottom:20px;color:#163D8C}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;font-weight:500}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;border:1px solid #CBD5E0;border-radius:8px;font-size:14px;outline:none}
+.form-group textarea{height:100px;resize:vertical}
+.btn{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500}
+.btn-primary{background:#163D8C;color:#fff}
+.btn-primary:hover{background:#0F2E6E}
+.btn-danger{background:#E53E3E;color:#fff}
+.btn-danger:hover{background:#C53030}
+.btn-secondary{background:#EDF2F7;color:#4A5568}
+.btn-secondary:hover{background:#E2E8F0}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #EDF2F7}
+th{background:#F7FAFC;color:#4A5568;font-weight:600}
+tr:hover{background:#F7FAFC}
+.status-0{color:#ED8936}
+.status-1{color:#38A169}
+.card-actions{display:flex;gap:12px;margin-bottom:16px}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:999}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:500px}
+.modal-box h3{margin-bottom:20px}
+.modal-actions{display:flex;gap:12px;margin-top:20px}
+.login-page{display:flex;align-items:center;justify-content:center;height:100vh}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.login-box h2{text-align:center;margin-bottom:30px;color:#163D8C}
+.empty{text-align:center;color:#A0AEC0;padding:40px}
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative}
+  .main{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <h2>岗策工具箱 - 后台管理</h2>
+    <div class="form-group">
+      <label>管理员密码</label>
+      <input type="password" id="pwdInput" placeholder="请输入后台密码">
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="login()">登录</button>
+  </div>
+</div>
+
+<div id="adminWrap" class="wrap" style="display:none">
+  <div class="sidebar">
+    <h1>岗策工具箱</h1>
+    <a href="#" class="active" onclick="showTab('goods')">商品管理</a>
+    <a href="#" onclick="showTab('orders')">订单管理</a>
+    <a href="#" onclick="showTab('cards')">卡密管理</a>
+    <a href="#" onclick="showTab('distributors')">分销管理</a>
+    <a href="#" onclick="showTab('referralOrders')">分销订单</a>
+    <a href="#" onclick="showTab('addGoods')">新增商品</a>
+    <a href="#" onclick="showTab('importCard')">导入卡密</a>
+    <button class="logout-btn" style="width:100%;margin-top:20px;text-align:left" onclick="logout()">退出登录</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h2 id="pageTitle">商品管理</h2>
+    </div>
+
+    <div id="goodsTab" class="tab-content">
+      <div class="card">
+        <h3>商品列表</h3>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>标题</th><th>价格</th><th>排序</th><th>操作</th></tr>
+          </thead>
+          <tbody id="goodsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="ordersTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>订单列表</h3>
+        <table>
+          <thead>
+            <tr><th>订单号</th><th>商品ID</th><th>金额</th><th>状态</th><th>创建时间</th></tr>
+          </thead>
+          <tbody id="ordersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="cardsTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>卡密库存</h3>
+        <div class="card-actions">
+          <select id="cardGoodsSelect" onchange="loadCards()"></select>
+          <select id="cardUsedSelect" onchange="loadCards()">
+            <option value="">全部</option>
+            <option value="0">未使用</option>
+            <option value="1">已使用</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>网盘链接</th><th>提取码</th><th>状态</th><th>创建时间</th></tr>
+          </thead>
+          <tbody id="cardsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="addGoodsTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>新增商品</h3>
+        <div class="form-group"><label>商品标题</label><input type="text" id="newTitle"></div>
+        <div class="form-group"><label>价格</label><input type="number" id="newPrice" step="0.01"></div>
+        <div class="form-group"><label>排序值</label><input type="number" id="newSort" value="0"></div>
+        <div class="form-group"><label>描述</label><textarea id="newDesc"></textarea></div>
+        <button class="btn btn-primary" onclick="addGoods()">提交</button>
+      </div>
+    </div>
+
+    <div id="importCardTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>批量导入卡密</h3>
+        <div class="form-group"><label>选择商品</label><select id="importGoodsSelect"></select></div>
+        <div class="form-group"><label>卡密内容（一行一条，格式：链接|提取码）</label><textarea id="cardText" placeholder="https://pan.baidu.com/s/xxx|abcd&#10;https://pan.baidu.com/s/yyy|1234"></textarea></div>
+        <button class="btn btn-primary" onclick="importCards()">导入</button>
+      </div>
+    </div>
+
+    <div id="distributorsTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>分销员列表</h3>
+        <div class="card-actions">
+          <select id="distStatusSelect" onchange="loadDistributors()">
+            <option value="">全部状态</option>
+            <option value="0">审核中</option>
+            <option value="1">已通过</option>
+            <option value="-1">已拒绝</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>手机号</th><th>昵称</th><th>邀请码</th><th>佣金比例</th><th>累计佣金</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+          </thead>
+          <tbody id="distributorsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="referralOrdersTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>分销订单列表</h3>
+        <table>
+          <thead>
+            <tr><th>订单号</th><th>用户手机号</th><th>分销员手机号</th><th>订单金额</th><th>佣金金额</th><th>状态</th><th>创建时间</th></tr>
+          </thead>
+          <tbody id="referralOrdersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <h3>编辑商品</h3>
+    <input type="hidden" id="editId">
+    <div class="form-group"><label>商品标题</label><input type="text" id="editTitle"></div>
+    <div class="form-group"><label>价格</label><input type="number" id="editPrice" step="0.01"></div>
+    <div class="form-group"><label>排序值</label><input type="number" id="editSort"></div>
+    <div class="form-group"><label>描述</label><textarea id="editDesc"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+      <button class="btn btn-secondary" onclick="closeEdit()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = "";
+const apiPrefix = "/api";
+
+async function login() {
+  const pwd = document.getElementById("pwdInput").value;
+  if (!pwd) return alert("请输入密码");
+  
+  const res = await fetch(`${apiPrefix}/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: pwd })
+  }).then(r => r.json());
+  
+  if (res.code !== 0) return alert(res.msg);
+  
+  token = res.data.token;
+  localStorage.setItem("gk_admin_token", token);
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("adminWrap").style.display = "flex";
+  loadGoods();
+  loadOrders();
+  loadGoodsSelect();
+}
+
+function logout() {
+  token = "";
+  localStorage.removeItem("gk_admin_token");
+  document.getElementById("adminWrap").style.display = "none";
+  document.getElementById("loginPage").style.display = "flex";
+  document.getElementById("pwdInput").value = "";
+}
+
+window.onload = function() {
+  const savedToken = localStorage.getItem("gk_admin_token");
+  if (savedToken) {
+    token = savedToken;
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("adminWrap").style.display = "flex";
+    loadGoods();
+    loadOrders();
+    loadGoodsSelect();
+  }
+}
+
+function showTab(tab) {
+  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+  event.target.classList.add("active");
+  document.querySelectorAll(".tab-content").forEach(t => t.style.display = "none");
+  document.getElementById(tab + "Tab").style.display = "block";
+  const titles = { goods: "商品管理", orders: "订单管理", cards: "卡密管理", distributors: "分销管理", referralOrders: "分销订单", addGoods: "新增商品", importCard: "导入卡密" };
+  document.getElementById("pageTitle").textContent = titles[tab];
+  if (tab === "cards") loadCards();
+  if (tab === "importCard") loadGoodsSelect();
+  if (tab === "distributors") loadDistributors();
+  if (tab === "referralOrders") loadReferralOrders();
+}
+
+async function loadGoods() {
+  const res = await fetch(`${apiPrefix}/goods`).then(r => r.json());
+  const tbody = document.getElementById("goodsTable");
+  tbody.innerHTML = "";
+  res.data.forEach(item => {
+    tbody.innerHTML += `<tr>
+      <td>${item.id}</td>
+      <td>${item.title}</td>
+      <td>¥${item.price.toFixed(2)}</td>
+      <td>${item.sort}</td>
+      <td><button class="btn btn-secondary" onclick="editGoods(${item.id})">编辑</button> <button class="btn btn-danger" onclick="deleteGoods(${item.id})">删除</button></td>
+    </tr>`;
+  });
+}
+
+async function loadOrders() {
+  const res = await fetch(`${apiPrefix}/admin`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const tbody = document.getElementById("ordersTable");
+  tbody.innerHTML = "";
+  res.orders.forEach(item => {
+    const status = item.status === 0 ? `<span class="status-0">待支付</span>` : `<span class="status-1">已支付</span>`;
+    tbody.innerHTML += `<tr>
+      <td>${item.trade_id}</td>
+      <td>${item.goods_id}</td>
+      <td>¥${item.pay_amount.toFixed(2)}</td>
+      <td>${status}</td>
+      <td>${item.create_at}</td>
+    </tr>`;
+  });
+}
+
+async function loadGoodsSelect() {
+  const res = await fetch(`${apiPrefix}/goods`).then(r => r.json());
+  const select1 = document.getElementById("cardGoodsSelect");
+  const select2 = document.getElementById("importGoodsSelect");
+  const html = res.data.map(g => `<option value="${g.id}">${g.title}</option>`).join("");
+  select1.innerHTML = `<option value="">选择商品</option>${html}`;
+  select2.innerHTML = `<option value="">选择商品</option>${html}`;
+}
+
+async function loadCards() {
+  const goodsId = document.getElementById("cardGoodsSelect").value;
+  const used = document.getElementById("cardUsedSelect").value;
+  if (!goodsId) return;
+  const url = used ? `${apiPrefix}/admin/cards?goodsId=${goodsId}&used=${used}` : `${apiPrefix}/admin/cards?goodsId=${goodsId}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const tbody = document.getElementById("cardsTable");
+  tbody.innerHTML = "";
+  if (!res.data || res.data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">暂无数据</td></tr>`;
+    return;
+  }
+  res.data.forEach(item => {
+    const status = item.is_used === 0 ? `<span class="status-0">未使用</span>` : `<span class="status-1">已使用</span>`;
+    tbody.innerHTML += `<tr>
+      <td>${item.id}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${item.pan_link}">${item.pan_link}</td>
+      <td>${item.pan_code}</td>
+      <td>${status}</td>
+      <td>${item.create_at}</td>
+    </tr>`;
+  });
+}
+
+async function addGoods() {
+  const title = document.getElementById("newTitle").value;
+  const price = document.getElementById("newPrice").value;
+  const sort = document.getElementById("newSort").value;
+  const desc = document.getElementById("newDesc").value;
+  if (!title || !price) return alert("请填写必填项");
+  await fetch(`${apiPrefix}/admin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ title, price, desc, sort })
+  }).then(r => r.json());
+  alert("添加成功");
+  document.getElementById("newTitle").value = "";
+  document.getElementById("newPrice").value = "";
+  document.getElementById("newSort").value = "0";
+  document.getElementById("newDesc").value = "";
+}
+
+async function editGoods(id) {
+  const res = await fetch(`${apiPrefix}/goods`).then(r => r.json());
+  const item = res.data.find(g => g.id === id);
+  document.getElementById("editId").value = item.id;
+  document.getElementById("editTitle").value = item.title;
+  document.getElementById("editPrice").value = item.price;
+  document.getElementById("editSort").value = item.sort;
+  document.getElementById("editDesc").value = item.description;
+  document.getElementById("editModal").classList.add("show");
+}
+
+function closeEdit() {
+  document.getElementById("editModal").classList.remove("show");
+}
+
+async function saveEdit() {
+  const id = document.getElementById("editId").value;
+  const title = document.getElementById("editTitle").value;
+  const price = document.getElementById("editPrice").value;
+  const sort = document.getElementById("editSort").value;
+  const desc = document.getElementById("editDesc").value;
+  await fetch(`${apiPrefix}/admin/goods`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id, title, price, desc, sort })
+  }).then(r => r.json());
+  alert("保存成功");
+  closeEdit();
+  loadGoods();
+}
+
+async function deleteGoods(id) {
+  if (!confirm("确定删除该商品？")) return;
+  await fetch(`${apiPrefix}/admin/goods`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id })
+  }).then(r => r.json());
+  alert("删除成功");
+  loadGoods();
+}
+
+async function importCards() {
+  const goodsId = document.getElementById("importGoodsSelect").value;
+  const text = document.getElementById("cardText").value;
+  if (!goodsId || !text) return alert("请选择商品并填写卡密内容");
+  await fetch(`${apiPrefix}/admin/card`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ goodsId, text })
+  }).then(r => r.json());
+  alert("导入成功");
+  document.getElementById("cardText").value = "";
+}
+
+async function loadDistributors() {
+  const status = document.getElementById("distStatusSelect").value;
+  const url = status ? `${apiPrefix}/admin/distributors?status=${status}` : `${apiPrefix}/admin/distributors`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const tbody = document.getElementById("distributorsTable");
+  tbody.innerHTML = "";
+  if (!res.data || res.data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="empty">暂无数据</td></tr>`;
+    return;
+  }
+  res.data.forEach(item => {
+    const statusText = item.status === 1 ? `<span class="status-1">已通过</span>` : (item.status === 0 ? `<span class="status-0">审核中</span>` : `<span style="color:#E53E3E">已拒绝</span>`);
+    const actions = item.status === 0 ? `<button class="btn btn-primary" onclick="approveDistributor(${item.user_id})">通过</button> <button class="btn btn-danger" onclick="rejectDistributor(${item.user_id})">拒绝</button>` : `<button class="btn btn-secondary" onclick="editDistributor(${item.user_id})">编辑</button>`;
+    tbody.innerHTML += `<tr>
+      <td>${item.id}</td>
+      <td>${item.phone || "-"}</td>
+      <td>${item.nickname || "-"}</td>
+      <td>${item.invite_code || "-"}</td>
+      <td>${(item.commission_rate * 100)}%</td>
+      <td>¥${item.total_commission.toFixed(2)}</td>
+      <td>${statusText}</td>
+      <td>${item.create_at}</td>
+      <td>${actions}</td>
+    </tr>`;
+  });
+}
+
+async function approveDistributor(userId) {
+  if (!confirm("确定通过该分销员申请？")) return;
+  await fetch(`${apiPrefix}/admin/distributors`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ user_id: userId, status: 1, commission_rate: 0.15 })
+  }).then(r => r.json());
+  alert("已通过");
+  loadDistributors();
+}
+
+async function rejectDistributor(userId) {
+  if (!confirm("确定拒绝该分销员申请？")) return;
+  await fetch(`${apiPrefix}/admin/distributors`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ user_id: userId, status: -1, commission_rate: 0.15 })
+  }).then(r => r.json());
+  alert("已拒绝");
+  loadDistributors();
+}
+
+async function editDistributor(userId) {
+  const res = await fetch(`${apiPrefix}/admin/distributors`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const item = res.data.find(d => d.user_id === userId);
+  const rate = prompt("请输入佣金比例（0-1）", item.commission_rate);
+  if (rate === null) return;
+  await fetch(`${apiPrefix}/admin/distributors`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ user_id: userId, status: item.status, commission_rate: parseFloat(rate) })
+  }).then(r => r.json());
+  alert("修改成功");
+  loadDistributors();
+}
+
+async function loadReferralOrders() {
+  const res = await fetch(`${apiPrefix}/admin/referral-orders`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const tbody = document.getElementById("referralOrdersTable");
+  tbody.innerHTML = "";
+  if (!res.data || res.data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">暂无数据</td></tr>`;
+    return;
+  }
+  res.data.forEach(item => {
+    const status = item.status === 0 ? `<span class="status-0">待结算</span>` : `<span class="status-1">已结算</span>`;
+    tbody.innerHTML += `<tr>
+      <td>${item.order_id}</td>
+      <td>${item.user_phone || "-"}</td>
+      <td>${item.distributor_phone || "-"}</td>
+      <td>¥${item.pay_amount?.toFixed(2) || "0.00"}</td>
+      <td>¥${item.commission_amount.toFixed(2)}</td>
+      <td>${status}</td>
+      <td>${item.order_create_at || item.create_at}</td>
+    </tr>`;
+  });
+}
+</script>
+</body>
+</html>

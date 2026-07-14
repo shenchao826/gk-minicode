@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行测错题本模板框架</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: "SimSun", "Microsoft YaHei", serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 2cm;
+        }
+        
+        h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5cm;
+            color: #000;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 1cm;
+            margin-bottom: 0.5cm;
+            color: #000;
+        }
+        
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 0.8cm;
+            margin-bottom: 0.3cm;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 0.5cm;
+            margin-bottom: 0.2cm;
+        }
+        
+        p {
+            margin: 0.3cm 0;
+            text-indent: 2em;
+        }
+        
+        ul, ol {
+            margin: 0.3cm 0;
+            padding-left: 1.5em;
+        }
+        
+        li {
+            margin: 0.2cm 0;
+        }
+        
+        li ul, li ol {
+            margin: 0.1cm 0;
+            padding-left: 1em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5cm 0;
+            font-size: 11pt;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 0.3cm;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #333;
+            padding-left: 0.5cm;
+            margin: 0.5cm 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        code {
+            font-family: "Courier New", monospace;
+            background-color: #f5f5f5;
+            padding: 0.1cm 0.2cm;
+            border-radius: 3px;
+            font-size: 11pt;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 0.5cm;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: "Courier New", monospace;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #ccc;
+            margin: 1cm 0;
+        }
+        
+        strong {
+            font-weight: bold;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                font-size: 11pt;
+            }
+            
+            h1 {
+                font-size: 22pt;
+            }
+            
+            h2 {
+                font-size: 15pt;
+            }
+            
+            h3 {
+                font-size: 13pt;
+            }
+            
+            .container {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>行测错题本模板框架</h1>
+<h2>一、错题本表头结构</h2>
+<h3>标准表格结构</h3>
+<table>
+<tr><td>序号</td><td>模块题型</td><td>原题摘抄</td><td>错误答案</td><td>正确答案</td><td>错误原因</td><td>知识点复盘</td><td>同类题提醒</td><td>复习周期</td></tr>
+<tr><td>1</td><td>判断推理-图形推理</td><td>题目描述或截图</td><td>A</td><td>C</td><td>粗心大意</td><td>位置规律-旋转</td><td>注意旋转角度</td><td>3天</td></tr>
+<tr><td>2</td><td>言语理解-逻辑填空</td><td>题目描述</td><td>不以为然</td><td>不以为意</td><td>成语辨析不清</td><td>易混成语辨析</td><td>注意语境区分</td><td>1天</td></tr>
+<tr><td>3</td><td>数量关系-工程问题</td><td>题目描述</td><td>10天</td><td>6天</td><td>公式记错</td><td>工作总量=效率×时间</td><td>设总量为公倍数</td><td>7天</td></tr>
+<h3>表头字段说明</h3>
+<ol><li><strong>序号</strong>：按时间顺序编号</li><li><strong>模块题型</strong>：明确所属模块及具体题型</li><li><strong>原题摘抄</strong>：简要记录题目或标注来源</li><li><strong>错误答案</strong>：记录自己的选择</li><li><strong>正确答案</strong>：记录正确选项</li><li><strong>错误原因</strong>：主观/客观原因分类</li><li><strong>知识点复盘</strong>：关联知识点、公式、技巧</li><li><strong>同类题提醒</strong>：总结同类题的做题要点</li><li><strong>复习周期</strong>：1天/3天/7天/14天/30天</li></ol>
+<hr>
+<h2>二、错误原因分类</h2>
+<h3>（一）知识性错误</h3>
+<ol><li><strong>公式记错</strong>：数量公式、逻辑公式混淆</li><li><strong>概念不清</strong>：对知识点理解不透彻</li><li><strong>方法不会</strong>：没有掌握正确的解题方法</li></ol>
+<h3>（二）审题性错误</h3>
+<ol><li><strong>粗心大意</strong>：看错数字、符号、关键词</li><li><strong>理解偏差</strong>：对题目意思理解错误</li><li><strong>遗漏条件</strong>：忽略题目中的重要限定条件</li></ol>
+<h3>（三）策略性错误</h3>
+<ol><li><strong>时间分配不当</strong>：花费过多时间导致后面题目没时间做</li><li><strong>方法选择错误</strong>：用复杂方法做简单题</li><li><strong>心态失衡</strong>：紧张导致发挥失常</li></ol>
+<h3>（四）习惯性错误</h3>
+<ol><li><strong>思维定式</strong>：凭感觉选答案，不按步骤做题</li><li><strong>计算失误</strong>：简单计算出错</li><li><strong>选项干扰</strong>：被干扰项迷惑</li></ol>
+<hr>
+<h2>三、复习周期安排</h2>
+<h3>艾宾浩斯遗忘曲线应用</h3>
+<tr><td>复习时间</td><td>记忆保留率</td><td>建议复习内容</td></tr>
+<tr><td>当天</td><td>90%</td><td>当天错题及时复盘</td></tr>
+<tr><td>1天后</td><td>60%</td><td>快速回顾错题要点</td></tr>
+<tr><td>3天后</td><td>40%</td><td>重新做一遍错题</td></tr>
+<tr><td>7天后</td><td>30%</td><td>重点复习易错题</td></tr>
+<tr><td>14天后</td><td>20%</td><td>全面复习所有错题</td></tr>
+<tr><td>30天后</td><td>15%</td><td>考前突击复习</td></tr>
+<h3>标记优先级</h3>
+<ul><li><strong>★★★</strong> 高频考点、易错知识点</li><li><strong>★★</strong> 中等难度、常考题型</li><li><strong>★</strong> 简单题目、偶发错误</li></ul>
+<hr>
+<h2>四、各模块错题整理重点</h2>
+<h3>（一）言语理解</h3>
+<tr><td>题型</td><td>整理重点</td></tr>
+<tr><td>逻辑填空</td><td>成语/实词辨析、语境分析</td></tr>
+<tr><td>主旨概括</td><td>关联词、行文脉络</td></tr>
+<tr><td>细节判断</td><td>常见陷阱类型</td></tr>
+<tr><td>语句排序</td><td>首句判断、捆绑技巧</td></tr>
+<h3>（二）数量关系</h3>
+<tr><td>题型</td><td>整理重点</td></tr>
+<tr><td>工程问题</td><td>效率计算、合作问题</td></tr>
+<tr><td>行程问题</td><td>相遇/追及公式</td></tr>
+<tr><td>利润问题</td><td>利润率、折扣计算</td></tr>
+<tr><td>排列组合</td><td>区分排列与组合</td></tr>
+<h3>（三）判断推理</h3>
+<tr><td>题型</td><td>整理重点</td></tr>
+<tr><td>图形推理</td><td>规律识别、特征图形</td></tr>
+<tr><td>类比推理</td><td>逻辑关系分类</td></tr>
+<tr><td>定义判断</td><td>关键词提取</td></tr>
+<tr><td>逻辑判断</td><td>翻译规则、推理公式</td></tr>
+<h3>（四）资料分析</h3>
+<tr><td>题型</td><td>整理重点</td></tr>
+<tr><td>增长率</td><td>公式应用、速算技巧</td></tr>
+<tr><td>比重</td><td>基期比重、比重变化</td></tr>
+<tr><td>平均数</td><td>平均数增长率</td></tr>
+<tr><td>综合分析</td><td>陷阱识别</td></tr>
+<hr>
+<h2>五、错题本使用方法</h2>
+<h3>（一）记录阶段</h3>
+<ol><li><strong>及时记录</strong>：当天错题当天整理</li><li><strong>详细分类</strong>：按模块、题型分类</li><li><strong>深度复盘</strong>：不仅记录答案，还要分析原因</li></ol>
+<h3>（二）复习阶段</h3>
+<ol><li><strong>定期回顾</strong>：按照复习周期安排</li><li><strong>模拟演练</strong>：盖住答案重新做题</li><li><strong>查漏补缺</strong>：发现薄弱环节重点突破</li></ol>
+<h3>（三）应用阶段</h3>
+<ol><li><strong>考前突击</strong>：集中复习所有错题</li><li><strong>举一反三</strong>：总结同类题规律</li><li><strong>持续更新</strong>：不断添加新错题</li></ol>
+<hr>
+<h2>六、Word模板粘贴格式</h2>
+<h3>表格结构文字</h3>
+<pre><code><tr><td>序号</td><td>模块题型</td><td>原题摘抄</td><td>错误答案</td><td>正确答案</td><td>错误原因</td><td>知识点复盘</td><td>同类题提醒</td><td>复习周期</td></tr>
+
+
+
+</code></pre>
+<h3>使用说明</h3>
+<ol><li>复制上方表格结构到Word</li><li>选中表格文字，插入表格</li><li>根据需要调整列宽和行高</li><li>设置表格边框和底纹</li><li>打印时调整为A4纸张</li></ol>
+<hr>
+<h2>七、思维导图大纲</h2>
+<pre><code>行测错题本
+<p>├── 表格结构</p>
+<p>│   ├── 表头字段</p>
+<p>│   └── 字段说明</p>
+<p>├── 错误分类</p>
+<p>│   ├── 知识性错误</p>
+<p>│   ├── 审题性错误</p>
+<p>│   ├── 策略性错误</p>
+<p>│   └── 习惯性错误</p>
+<p>├── 复习周期</p>
+<p>│   ├── 艾宾浩斯曲线</p>
+<p>│   └── 优先级标记</p>
+<p>├── 模块重点</p>
+<p>│   ├── 言语理解</p>
+<p>│   ├── 数量关系</p>
+<p>│   ├── 判断推理</p>
+<p>│   └── 资料分析</p>
+<p>└── 使用方法</p>
+<p>    ├── 记录阶段</p>
+<p>    ├── 复习阶段</p>
+<p>    └── 应用阶段</p>
+</code></pre>
+</table>
+    </div>
+</body>
+</html>

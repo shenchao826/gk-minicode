@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗策工具箱 - 公考备考原创工具素材站</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <div class="logo">岗策工具箱 <span>GANGCE TOOLS</span></div>
+      <div class="nav-menu">
+        <a href="#" class="active">首页商城</a>
+        <a href="#member">会员中心</a>
+        <a href="#distributor">分销返佣</a>
+        <a href="#faq">常见问题</a>
+        <div class="user-area" id="userArea">
+          <button class="login-btn" onclick="openLoginModal()">登录 / 注册</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="header">
+    <div class="container">
+      <h1 class="title">公考原创备考工具素材库</h1>
+      <p class="desc">精简备考工具，降低选岗与复习成本</p>
+      <p class="tip-text">✅ 原创手工整理 · 无机构搬运 · 资料定期更新</p>
+    </div>
+  </header>
+
+  <main class="container main">
+    <div class="filter-bar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索资料（如：行测、申论、真题）" oninput="filterGoods()">
+        <button class="search-btn" onclick="filterGoods()">🔍</button>
+      </div>
+      <div class="category-tabs">
+        <button class="cat-btn active" data-cat="all" onclick="setCategory('all')">全部</button>
+        <button class="cat-btn" data-cat="入门" onclick="setCategory('入门')">入门工具</button>
+        <button class="cat-btn" data-cat="行测" onclick="setCategory('行测')">行测提分</button>
+        <button class="cat-btn" data-cat="申论" onclick="setCategory('申论')">申论突破</button>
+        <button class="cat-btn" data-cat="时政" onclick="setCategory('时政')">时政常识</button>
+        <button class="cat-btn" data-cat="全套" onclick="setCategory('全套')">全套合集</button>
+      </div>
+    </div>
+
+    <div class="goods-list" id="goodsList"></div>
+
+    <section class="member-section" id="member">
+      <h2 class="section-title">🎖️ 会员中心</h2>
+      <p class="section-desc">开通会员享受专属优惠，助力高效备考</p>
+      <div class="member-cards" id="memberCards"></div>
+    </section>
+
+    <section class="distributor-section" id="distributor">
+      <h2 class="section-title">💰 分销返佣计划</h2>
+      <p class="section-desc">邀请好友购买，轻松赚取佣金</p>
+      <div class="distributor-content">
+        <div class="dist-card">
+          <div class="dist-icon">📊</div>
+          <h3>高佣金比例</h3>
+          <p>最高15%佣金比例，好友购买即可获得</p>
+        </div>
+        <div class="dist-card">
+          <div class="dist-icon">🔗</div>
+          <h3>专属邀请链接</h3>
+          <p>生成专属邀请码，分享给好友即可追踪</p>
+        </div>
+        <div class="dist-card">
+          <div class="dist-icon">💳</div>
+          <h3>灵活提现</h3>
+          <p>满10元即可申请提现，支持微信/支付宝</p>
+        </div>
+        <div class="dist-card">
+          <div class="dist-icon">📈</div>
+          <h3>实时统计</h3>
+          <p>佣金收入、邀请人数实时查看</p>
+        </div>
+      </div>
+      <div class="dist-actions">
+        <button class="dist-btn" id="applyDistBtn" onclick="applyDistributor()" style="display:none">申请成为分销员</button>
+        <button class="dist-btn" id="viewDistBtn" onclick="openDistModal()" style="display:none">查看分销中心</button>
+        <button class="dist-btn" id="loginDistBtn" onclick="openLoginModal()">登录后申请</button>
+      </div>
+    </section>
+
+    <section class="faq-wrap" id="faq">
+      <h2 class="faq-title">常见问题 FAQ</h2>
+      
+      <h3 class="faq-subtitle">📚 购物相关</h3>
+      <div class="faq-item">
+        <div class="faq-q">付款后多久可以获取资料？</div>
+        <div class="faq-a">支付完成页面自动刷新即可展示网盘链接与提取码，如未自动弹出可点击右下角查订单按钮手动查询。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">网盘链接失效该如何处理？</div>
+        <div class="faq-a">所有商品支持永久链接免费补发，可保存订单号联系站长更新分享链接。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">购买后资料会更新版本吗？</div>
+        <div class="faq-a">对应类目后续新增整理内容，均可免费获取更新版文件，无需二次付费。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">支持哪些付款方式？</div>
+        <div class="faq-a">支持微信、支付宝扫码支付，由聚合支付渠道中转收款。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">可以开发票吗？</div>
+        <div class="faq-a">暂不支持开具发票，如需报销请联系站长协商处理。</div>
+      </div>
+      
+      <h3 class="faq-subtitle">🎖️ 会员相关</h3>
+      <div class="faq-item">
+        <div class="faq-q">会员有哪些权益？</div>
+        <div class="faq-a">会员享受全场折扣优惠（普通会员95折、VIP会员9折、至尊会员85折），免费获取时政月度更新，至尊会员可免费获取全站所有资料。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">会员可以叠加购买吗？</div>
+        <div class="faq-a">可以，会员有效期可累计。例如购买30天普通会员后再购买90天VIP会员，有效期将累加。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">会员到期后可以续期吗？</div>
+        <div class="faq-a">可以，会员到期后随时可以再次购买，系统会自动更新会员等级和有效期。</div>
+      </div>
+      
+      <h3 class="faq-subtitle">💰 分销相关</h3>
+      <div class="faq-item">
+        <div class="faq-q">如何成为分销员？</div>
+        <div class="faq-a">登录后点击"申请成为分销员"，提交申请后等待审核。审核通过后即可生成专属邀请码，分享给好友购买即可赚取佣金。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">佣金如何结算？</div>
+        <div class="faq-a">好友通过您的邀请码注册并购买商品后，佣金将自动计入您的账户。满10元即可申请提现，提现将在3个工作日内到账。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">佣金比例是多少？</div>
+        <div class="faq-a">默认佣金比例为15%，后台可根据实际情况调整。分销员可在后台查看自己的佣金比例。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">如何分享邀请码？</div>
+        <div class="faq-a">申请成为分销员后，在分销中心即可查看专属邀请码，可将邀请码分享给好友注册时使用。</div>
+      </div>
+      
+      <h3 class="faq-subtitle">📦 资料相关</h3>
+      <div class="faq-item">
+        <div class="faq-q">资料是什么格式的？</div>
+        <div class="faq-a">资料包含PDF、Word、Excel等多种格式，部分资料提供可编辑版本，方便您根据自身需求进行修改。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">资料内容是否包含真题？</div>
+        <div class="faq-a">本站资料为原创整理的备考工具包，包含历年真题汇编（分模块整理）、全真模拟试卷，但不包含任何机构的原版真题和课程。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">资料可以下载打印吗？</div>
+        <div class="faq-a">可以，所有PDF和Word资料均可下载打印，建议打印后配合错题本使用，效果更佳。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">资料适合什么基础的考生？</div>
+        <div class="faq-a">资料定位为"国考备考补充工具包"，适合有一定基础后针对性提分的考生、在职备考考生、已报班需要补充资料的考生。零基础考生建议搭配系统课程使用。</div>
+      </div>
+      
+      <h3 class="faq-subtitle">🔒 隐私与安全</h3>
+      <div class="faq-item">
+        <div class="faq-q">我的个人信息安全吗？</div>
+        <div class="faq-a">我们采用加密存储您的手机号和密码，不会向第三方泄露您的个人信息。您随时可以申请注销账号并删除所有数据。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">如何注销账号？</div>
+        <div class="faq-a">联系我们客服，提供注册手机号和身份信息验证后，我们将在24小时内为您注销账号并删除所有数据。</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="orderModal">
+    <div class="modal-box">
+      <h2>订单详情</h2>
+      <div class="modal-body" id="orderBody"></div>
+      <button class="btn-copy" id="copyBtn" style="display:none">一键复制链接+提取码</button>
+      <button class="btn-close" onclick="closeModal()">关闭弹窗</button>
+    </div>
+  </div>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-box">
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchLoginTab('login')">登录</button>
+        <button class="login-tab" onclick="switchLoginTab('register')">注册</button>
+      </div>
+      <div id="loginForm">
+        <div class="form-group"><label>手机号</label><input type="tel" id="loginPhone" placeholder="请输入手机号"></div>
+        <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="请输入密码"></div>
+        <button class="buy-btn" onclick="doLogin()">登录</button>
+        <p style="text-align:center;margin-top:12px"><a href="javascript:void(0)" onclick="switchLoginTab('reset')" style="color:#E67722;font-size:14px">忘记密码？</a></p>
+      </div>
+      <div id="registerForm" style="display:none">
+        <div class="form-group"><label>手机号</label><input type="tel" id="regPhone" placeholder="请输入手机号"></div>
+        <div class="form-group"><label>密码</label><input type="password" id="regPassword" placeholder="请输入密码"></div>
+        <div class="form-group"><label>昵称</label><input type="text" id="regNickname" placeholder="请输入昵称（选填）"></div>
+        <div class="form-group"><label>邀请码</label><input type="text" id="regInviteCode" placeholder="请输入邀请码（选填）"></div>
+        <button class="buy-btn" onclick="doRegister()">注册</button>
+      </div>
+      <div id="resetForm" style="display:none">
+        <div class="form-group"><label>手机号</label><input type="tel" id="resetPhone" placeholder="请输入注册时的手机号"></div>
+        <div class="form-group"><label>新密码</label><input type="password" id="resetPassword" placeholder="请输入新密码（不少于6位）"></div>
+        <button class="buy-btn" onclick="doResetPwd()">重置密码</button>
+        <p style="text-align:center;margin-top:12px"><a href="javascript:void(0)" onclick="switchLoginTab('login')" style="color:#E67722;font-size:14px">返回登录</a></p>
+      </div>
+      <button class="btn-close" onclick="closeLoginModal()">关闭</button>
+    </div>
+  </div>
+
+  <div class="modal" id="distModal">
+    <div class="modal-box" style="max-width:600px">
+      <h2>分销中心</h2>
+      <div class="dist-info" id="distInfo">
+        <div class="dist-row">
+          <span>分销状态：</span>
+          <span id="distStatus">未申请</span>
+        </div>
+        <div class="dist-row">
+          <span>专属邀请码：</span>
+          <span id="distCode">-</span>
+        </div>
+        <div class="dist-row">
+          <span>佣金比例：</span>
+          <span id="distRate">-</span>
+        </div>
+        <div class="dist-row">
+          <span>累计佣金：</span>
+          <span id="distTotal">¥0.00</span>
+        </div>
+        <div class="dist-row">
+          <span>可提现余额：</span>
+          <span id="distAvailable">¥0.00</span>
+        </div>
+        <div class="dist-row">
+          <span>邀请人数：</span>
+          <span id="distReferral">-</span>
+        </div>
+      </div>
+      <div class="dist-withdraw" id="distWithdraw" style="display:none">
+        <div class="form-group"><label>提现金额</label><input type="number" id="withdrawAmount" placeholder="请输入提现金额（最低10元）"></div>
+        <button class="buy-btn" onclick="doWithdraw()">申请提现</button>
+      </div>
+      <button class="btn-close" onclick="closeDistModal()">关闭</button>
+    </div>
+  </div>
+
+  <div class="float-btn" onclick="openQueryModal()">📋 查询订单</div>
+
+  <div class="modal" id="queryModal">
+    <div class="modal-box">
+      <h2>手动查询订单</h2>
+      <input class="order-input" id="tidInput" placeholder="请输入你的订单编号">
+      <button class="buy-btn" onclick="manualQuery()">立即查询</button>
+      <button class="btn-close" onclick="closeQueryModal()">关闭</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-row">
+      <div class="footer-left">
+        <p>站点域名：gk.minicode.cloud</p>
+        <p>岗策工具箱 © 2026 All Rights Reserved</p>
+      </div>
+      <div class="footer-right">
+        <p>本站所有资料为原创手工整理备考模板，仅用于个人学习交流</p>
+        <p>无任何公考机构官方授权，不含原版课程与出版物</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

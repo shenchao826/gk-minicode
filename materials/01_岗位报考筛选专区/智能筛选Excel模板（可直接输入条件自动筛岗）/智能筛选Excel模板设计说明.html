@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能筛选Excel模板设计说明</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: "SimSun", "Microsoft YaHei", serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 2cm;
+        }
+        
+        h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5cm;
+            color: #000;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-top: 1cm;
+            margin-bottom: 0.5cm;
+            color: #000;
+        }
+        
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 0.8cm;
+            margin-bottom: 0.3cm;
+        }
+        
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 0.5cm;
+            margin-bottom: 0.2cm;
+        }
+        
+        p {
+            margin: 0.3cm 0;
+            text-indent: 2em;
+        }
+        
+        ul, ol {
+            margin: 0.3cm 0;
+            padding-left: 1.5em;
+        }
+        
+        li {
+            margin: 0.2cm 0;
+        }
+        
+        li ul, li ol {
+            margin: 0.1cm 0;
+            padding-left: 1em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5cm 0;
+            font-size: 11pt;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 0.3cm;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        blockquote {
+            border-left: 4px solid #333;
+            padding-left: 0.5cm;
+            margin: 0.5cm 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        code {
+            font-family: "Courier New", monospace;
+            background-color: #f5f5f5;
+            padding: 0.1cm 0.2cm;
+            border-radius: 3px;
+            font-size: 11pt;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 0.5cm;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: "Courier New", monospace;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #ccc;
+            margin: 1cm 0;
+        }
+        
+        strong {
+            font-weight: bold;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                font-size: 11pt;
+            }
+            
+            h1 {
+                font-size: 22pt;
+            }
+            
+            h2 {
+                font-size: 15pt;
+            }
+            
+            h3 {
+                font-size: 13pt;
+            }
+            
+            .container {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>国考岗位智能筛选Excel模板设计说明</h1>
+<h2>前言</h2>
+<p>本说明详细介绍如何制作一个功能强大的国考岗位智能筛选Excel模板，通过数据验证、下拉菜单和IF函数实现多条件一键筛选，帮助考生快速找到符合条件的岗位。</p>
+<hr>
+<h2>一、模板整体架构</h2>
+<h3>1.1 工作表结构</h3>
+<table>
+<tr><td>工作表名称</td><td>用途</td></tr>
+<tr><td>原始岗位表</td><td>存放从官网下载的完整岗位数据</td></tr>
+<tr><td>智能筛选表</td><td>提供筛选条件输入框和筛选结果展示</td></tr>
+<tr><td>应届生专筛</td><td>预设应届生条件的筛选结果</td></tr>
+<tr><td>不限专业专筛</td><td>预设不限专业条件的筛选结果</td></tr>
+<tr><td>基层项目专筛</td><td>预设基层服务项目定向岗位筛选结果</td></tr>
+<h3>1.2 工作流程</h3>
+<pre><code>用户输入筛选条件 → 下拉菜单选择 → IF函数自动匹配 → 筛选结果实时显示 → 用户查看符合条件的岗位
+</code></pre>
+<hr>
+<h2>二、字段设计详解</h2>
+<h3>2.1 原始岗位表字段</h3>
+<p>从国家公务员局官网下载的岗位表通常包含以下字段（以2026年为例）：</p>
+<tr><td>列号</td><td>字段名称</td><td>数据类型</td><td>说明</td></tr>
+<tr><td>A</td><td>岗位代码</td><td>文本</td><td>岗位唯一标识</td></tr>
+<tr><td>B</td><td>部门名称</td><td>文本</td><td>招录单位全称</td></tr>
+<tr><td>C</td><td>部门代码</td><td>文本</td><td>部门唯一标识</td></tr>
+<tr><td>D</td><td>用人司局</td><td>文本</td><td>具体工作部门</td></tr>
+<tr><td>E</td><td>机构性质</td><td>文本</td><td>中央党群机关/中央国家行政机关等</td></tr>
+<tr><td>F</td><td>机构层级</td><td>文本</td><td>中央/省级/市级/县级/乡镇</td></tr>
+<tr><td>G</td><td>职位类别</td><td>文本</td><td>综合管理类/行政执法类/专业技术类</td></tr>
+<tr><td>H</td><td>职位名称</td><td>文本</td><td>岗位具体名称</td></tr>
+<tr><td>I</td><td>职位简介</td><td>文本</td><td>岗位工作内容描述</td></tr>
+<tr><td>J</td><td>专业</td><td>文本</td><td>所需专业（多个专业用顿号分隔）</td></tr>
+<tr><td>K</td><td>学历</td><td>文本</td><td>大专/本科/硕士/博士</td></tr>
+<tr><td>L</td><td>学位</td><td>文本</td><td>学士/硕士/博士/不限</td></tr>
+<tr><td>M</td><td>政治面貌</td><td>文本</td><td>中共党员/共青团员/群众</td></tr>
+<tr><td>N</td><td>基层工作最低年限</td><td>文本</td><td>无/2年/3年/5年以上</td></tr>
+<tr><td>O</td><td>服务基层项目工作经历</td><td>文本</td><td>三支一扶/西部计划/特岗教师等</td></tr>
+<tr><td>P</td><td>是否在面试阶段组织专业能力测试</td><td>文本</td><td>是/否</td></tr>
+<tr><td>Q</td><td>面试人员比例</td><td>文本</td><td>3:1/5:1等</td></tr>
+<tr><td>R</td><td>工作地点</td><td>文本</td><td>具体工作地点</td></tr>
+<tr><td>S</td><td>落户地点</td><td>文本</td><td>落户城市</td></tr>
+<tr><td>T</td><td>备注</td><td>文本</td><td>其他说明</td></tr>
+<tr><td>U</td><td>部门网站</td><td>文本</td><td>部门官网链接</td></tr>
+<tr><td>V</td><td>咨询电话</td><td>文本</td><td>联系电话</td></tr>
+<tr><td>W</td><td>招录人数</td><td>数字</td><td>该岗位计划招录人数</td></tr>
+<h3>2.2 智能筛选表字段</h3>
+<h4>（1）筛选条件输入区域（第1-10行）</h4>
+<tr><td>行号</td><td>条件名称</td><td>输入方式</td><td>说明</td></tr>
+<tr><td>1</td><td>学历要求</td><td>下拉菜单</td><td>大专/本科/硕士/博士/不限</td></tr>
+<tr><td>2</td><td>学位要求</td><td>下拉菜单</td><td>学士/硕士/博士/不限</td></tr>
+<tr><td>3</td><td>专业关键词</td><td>文本输入</td><td>输入专业关键词进行模糊匹配</td></tr>
+<tr><td>4</td><td>政治面貌</td><td>下拉菜单</td><td>中共党员/共青团员/群众/不限</td></tr>
+<tr><td>5</td><td>基层工作年限</td><td>下拉菜单</td><td>无/2年/3年/5年以上/不限</td></tr>
+<tr><td>6</td><td>服务基层项目</td><td>下拉菜单</td><td>三支一扶/西部计划/特岗教师/大学生村官/不限</td></tr>
+<tr><td>7</td><td>机构层级</td><td>下拉菜单</td><td>中央/省级/市级/县级/乡镇/不限</td></tr>
+<tr><td>8</td><td>职位类别</td><td>下拉菜单</td><td>综合管理类/行政执法类/专业技术类/不限</td></tr>
+<tr><td>9</td><td>工作地点</td><td>文本输入</td><td>输入城市名称进行匹配</td></tr>
+<tr><td>10</td><td>是否限应届生</td><td>下拉菜单</td><td>是/否/不限</td></tr>
+<h4>（2）筛选结果展示区域（从第15行开始）</h4>
+<tr><td>列号</td><td>字段名称</td><td>说明</td></tr>
+<tr><td>A</td><td>序号</td><td>自动编号</td></tr>
+<tr><td>B</td><td>岗位代码</td><td>来自原始岗位表</td></tr>
+<tr><td>C</td><td>部门名称</td><td>来自原始岗位表</td></tr>
+<tr><td>D</td><td>用人司局</td><td>来自原始岗位表</td></tr>
+<tr><td>E</td><td>职位名称</td><td>来自原始岗位表</td></tr>
+<tr><td>F</td><td>职位简介</td><td>来自原始岗位表</td></tr>
+<tr><td>G</td><td>专业</td><td>来自原始岗位表</td></tr>
+<tr><td>H</td><td>学历</td><td>来自原始岗位表</td></tr>
+<tr><td>I</td><td>学位</td><td>来自原始岗位表</td></tr>
+<tr><td>J</td><td>政治面貌</td><td>来自原始岗位表</td></tr>
+<tr><td>K</td><td>基层工作年限</td><td>来自原始岗位表</td></tr>
+<tr><td>L</td><td>服务基层项目</td><td>来自原始岗位表</td></tr>
+<tr><td>M</td><td>机构层级</td><td>来自原始岗位表</td></tr>
+<tr><td>N</td><td>工作地点</td><td>来自原始岗位表</td></tr>
+<tr><td>O</td><td>落户地点</td><td>来自原始岗位表</td></tr>
+<tr><td>P</td><td>招录人数</td><td>来自原始岗位表</td></tr>
+<tr><td>Q</td><td>咨询电话</td><td>来自原始岗位表</td></tr>
+<hr>
+<h2>三、数据验证设置方法</h2>
+<h3>3.1 创建下拉菜单数据源</h3>
+<p>在Excel中新建一个隐藏工作表（命名为"数据源"），在其中输入所有筛选条件的选项：</p>
+<h4>（1）学历选项（A1:A5）</h4>
+<pre><code>不限
+<p>大专</p>
+<p>本科</p>
+<p>硕士</p>
+<p>博士</p>
+</code></pre>
+<h4>（2）学位选项（B1:B4）</h4>
+<pre><code>不限
+<p>学士</p>
+<p>硕士</p>
+<p>博士</p>
+</code></pre>
+<h4>（3）政治面貌选项（C1:C4）</h4>
+<pre><code>不限
+<p>中共党员</p>
+<p>共青团员</p>
+<p>群众</p>
+</code></pre>
+<h4>（4）基层工作年限选项（D1:D5）</h4>
+<pre><code>不限
+<p>无</p>
+<p>2年</p>
+<p>3年</p>
+<p>5年以上</p>
+</code></pre>
+<h4>（5）服务基层项目选项（E1:E6）</h4>
+<pre><code>不限
+<p>三支一扶</p>
+<p>西部计划</p>
+<p>特岗教师</p>
+<p>大学生村官</p>
+<p>退役大学生士兵</p>
+</code></pre>
+<h4>（6）机构层级选项（F1:F6）</h4>
+<pre><code>不限
+<p>中央</p>
+<p>省级</p>
+<p>市级</p>
+<p>县级</p>
+<p>乡镇</p>
+</code></pre>
+<h4>（7）职位类别选项（G1:G4）</h4>
+<pre><code>不限
+<p>综合管理类</p>
+<p>行政执法类</p>
+<p>专业技术类</p>
+</code></pre>
+<h4>（8）应届生选项（H1:H3）</h4>
+<pre><code>不限
+<p>是</p>
+<p>否</p>
+</code></pre>
+<h3>3.2 设置数据验证</h3>
+<p>以设置学历下拉菜单为例：</p>
+<ol><li>选中智能筛选表中"学历要求"对应的单元格（如B1）</li><li>点击"数据"选项卡 → "数据验证" → "数据验证"</li><li>在弹出的对话框中：</li></ol>
+<p>   - 允许：选择"序列"</p>
+<p>   - 来源：输入<code>=数据源!$A$1:$A$5</code></p>
+<p>   - 勾选"提供下拉箭头"</p>
+<p>   - 点击"确定"</p>
+<strong>重复以上步骤</strong>，为其他筛选条件设置下拉菜单：
+<tr><td>条件单元格</td><td>数据验证来源</td></tr>
+<tr><td>B2（学位）</td><td>=数据源!$B$1:$B$4</td></tr>
+<tr><td>B3（专业）</td><td>直接文本输入，无需下拉</td></tr>
+<tr><td>B4（政治面貌）</td><td>=数据源!$C$1:$C$4</td></tr>
+<tr><td>B5（基层工作年限）</td><td>=数据源!$D$1:$D$5</td></tr>
+<tr><td>B6（服务基层项目）</td><td>=数据源!$E$1:$E$6</td></tr>
+<tr><td>B7（机构层级）</td><td>=数据源!$F$1:$F$6</td></tr>
+<tr><td>B8（职位类别）</td><td>=数据源!$G$1:$G$4</td></tr>
+<tr><td>B9（工作地点）</td><td>直接文本输入，无需下拉</td></tr>
+<tr><td>B10（应届生）</td><td>=数据源!$H$1:$H$3</td></tr>
+<hr>
+<h2>四、筛选公式编写</h2>
+<h3>4.1 核心筛选公式</h3>
+<p>在智能筛选表的第15行（筛选结果起始行）使用以下数组公式：</p>
+<h4>A15（序号）</h4>
+<pre><code>=IFERROR(ROW()-14,"")
+</code></pre>
+<h4>B15（岗位代码）</h4>
+<pre><code>=IFERROR(INDEX(原始岗位表!$A:$A,SMALL(IF(AND(原始岗位表!$K$2:$K$10000=IF($B$1="不限",原始岗位表!$K$2:$K$10000,$B$1),原始岗位表!$L$2:$L$10000=IF($B$2="不限",原始岗位表!$L$2:$L$10000,$B$2),原始岗位表!$J$2:$J$10000=IF($B$3="",原始岗位表!$J$2:$J$10000,$B$3),原始岗位表!$M$2:$M$10000=IF($B$4="不限",原始岗位表!$M$2:$M$10000,$B$4),原始岗位表!$N$2:$N$10000=IF($B$5="不限",原始岗位表!$N$2:$N$10000,$B$5),原始岗位表!$O$2:$O$10000=IF($B$6="不限",原始岗位表!$O$2:$O$10000,$B$6),原始岗位表!$F$2:$F$10000=IF($B$7="不限",原始岗位表!$F$2:$F$10000,$B$7),原始岗位表!$G$2:$G$10000=IF($B$8="不限",原始岗位表!$G$2:$G$10000,$B$8),原始岗位表!$R$2:$R$10000=IF($B$9="",原始岗位表!$R$2:$R$10000,$B$9)),ROW(原始岗位表!$A$2:$A$10000),999999),ROW()-14)),"")
+</code></pre>
+<strong>注意</strong>：输入数组公式后需按 <code>Ctrl+Shift+Enter</code> 组合键确认。
+<h3>4.2 简化版筛选公式（使用辅助列）</h3>
+<p>为了简化公式，建议在原始岗位表中添加辅助列：</p>
+<h4>辅助列AA（学历匹配）</h4>
+<pre><code>=IF($K2=智能筛选表!$B$1,"匹配",IF(智能筛选表!$B$1="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AB（学位匹配）</h4>
+<pre><code>=IF($L2=智能筛选表!$B$2,"匹配",IF(智能筛选表!$B$2="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AC（专业匹配）</h4>
+<pre><code>=IF(智能筛选表!$B$3="","匹配",IF(ISNUMBER(SEARCH(智能筛选表!$B$3,$J2)),"匹配","不匹配"))
+</code></pre>
+<h4>辅助列AD（政治面貌匹配）</h4>
+<pre><code>=IF($M2=智能筛选表!$B$4,"匹配",IF(智能筛选表!$B$4="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AE（基层工作年限匹配）</h4>
+<pre><code>=IF($N2=智能筛选表!$B$5,"匹配",IF(智能筛选表!$B$5="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AF（服务基层项目匹配）</h4>
+<pre><code>=IF($O2=智能筛选表!$B$6,"匹配",IF(智能筛选表!$B$6="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AG（机构层级匹配）</h4>
+<pre><code>=IF($F2=智能筛选表!$B$7,"匹配",IF(智能筛选表!$B$7="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AH（职位类别匹配）</h4>
+<pre><code>=IF($G2=智能筛选表!$B$8,"匹配",IF(智能筛选表!$B$8="不限","匹配","不匹配"))
+</code></pre>
+<h4>辅助列AI（工作地点匹配）</h4>
+<pre><code>=IF(智能筛选表!$B$9="","匹配",IF(ISNUMBER(SEARCH(智能筛选表!$B$9,$R2)),"匹配","不匹配"))
+</code></pre>
+<h4>辅助列AJ（总匹配结果）</h4>
+<pre><code>=IF(AND(AA2="匹配",AB2="匹配",AC2="匹配",AD2="匹配",AE2="匹配",AF2="匹配",AG2="匹配",AH2="匹配",AI2="匹配"),"符合条件","不符合")
+</code></pre>
+<h3>4.3 使用筛选结果的INDEX公式</h3>
+<p>在智能筛选表B15单元格输入：</p>
+<pre><code>=IFERROR(INDEX(原始岗位表!$A$2:$A$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")
+</code></pre>
+<strong>按Ctrl+Shift+Enter确认</strong>后，横向拖拽填充其他列，纵向拖拽填充多行。
+<h3>4.4 各列公式速查表</h3>
+<tr><td>列号</td><td>字段</td><td>公式</td></tr>
+<tr><td>B</td><td>岗位代码</td><td>=IFERROR(INDEX(原始岗位表!$A$2:$A$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>C</td><td>部门名称</td><td>=IFERROR(INDEX(原始岗位表!$B$2:$B$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>D</td><td>用人司局</td><td>=IFERROR(INDEX(原始岗位表!$D$2:$D$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>E</td><td>职位名称</td><td>=IFERROR(INDEX(原始岗位表!$H$2:$H$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>F</td><td>职位简介</td><td>=IFERROR(INDEX(原始岗位表!$I$2:$I$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>G</td><td>专业</td><td>=IFERROR(INDEX(原始岗位表!$J$2:$J$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>H</td><td>学历</td><td>=IFERROR(INDEX(原始岗位表!$K$2:$K$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>I</td><td>学位</td><td>=IFERROR(INDEX(原始岗位表!$L$2:$L$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>J</td><td>政治面貌</td><td>=IFERROR(INDEX(原始岗位表!$M$2:$M$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>K</td><td>基层工作年限</td><td>=IFERROR(INDEX(原始岗位表!$N$2:$N$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>L</td><td>服务基层项目</td><td>=IFERROR(INDEX(原始岗位表!$O$2:$O$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>M</td><td>机构层级</td><td>=IFERROR(INDEX(原始岗位表!$F$2:$F$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>N</td><td>工作地点</td><td>=IFERROR(INDEX(原始岗位表!$R$2:$R$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>O</td><td>落户地点</td><td>=IFERROR(INDEX(原始岗位表!$S$2:$S$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>P</td><td>招录人数</td><td>=IFERROR(INDEX(原始岗位表!$W$2:$W$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<tr><td>Q</td><td>咨询电话</td><td>=IFERROR(INDEX(原始岗位表!$V$2:$V$10000,SMALL(IF(原始岗位表!$AJ$2:$AJ$10000="符合条件",ROW(原始岗位表!$AJ$2:$AJ$10000)-1),ROW()-14)),"")</td></tr>
+<hr>
+<h2>五、预设筛选工作表设计</h2>
+<h3>5.1 应届生专筛表</h3>
+<strong>预设条件</strong>：
+<ul><li>学历：不限</li><li>学位：不限</li><li>基层工作年限：无</li><li>是否限应届生：是</li></ul>
+<strong>公式设置</strong>：参考智能筛选表，但将条件固定为应届生相关条件。
+<h3>5.2 不限专业专筛表</h3>
+<strong>预设条件</strong>：
+<ul><li>专业：（空，即不限专业）</li><li>其他条件：全部不限</li></ul>
+<strong>公式设置</strong>：参考智能筛选表，但将专业条件设为空。
+<h3>5.3 基层项目专筛表</h3>
+<strong>预设条件</strong>：
+<ul><li>服务基层项目：三支一扶/西部计划/特岗教师/大学生村官（多选）</li><li>其他条件：全部不限</li></ul>
+<strong>公式设置</strong>：使用OR函数匹配多个基层项目选项。
+<hr>
+<h2>六、模板美化与格式设置</h2>
+<h3>6.1 表头格式</h3>
+<tr><td>设置项</td><td>格式</td></tr>
+<tr><td>字体</td><td>微软雅黑，12号，加粗</td></tr>
+<tr><td>背景色</td><td>RGB(66,139,202)（深蓝色）</td></tr>
+<tr><td>文字颜色</td><td>白色</td></tr>
+<tr><td>对齐方式</td><td>居中</td></tr>
+<tr><td>边框</td><td>全边框</td></tr>
+<h3>6.2 条件输入区域格式</h3>
+<tr><td>设置项</td><td>格式</td></tr>
+<tr><td>标签单元格</td><td>微软雅黑，11号，右对齐</td></tr>
+<tr><td>输入单元格</td><td>微软雅黑，11号，居中，黄色背景（RGB(255,255,153)）</td></tr>
+<tr><td>边框</td><td>外边框加粗</td></tr>
+<h3>6.3 筛选结果区域格式</h3>
+<tr><td>设置项</td><td>格式</td></tr>
+<tr><td>字体</td><td>微软雅黑，10号</td></tr>
+<tr><td>对齐方式</td><td>居中</td></tr>
+<tr><td>边框</td><td>全边框</td></tr>
+<tr><td>行高</td><td>自动调整</td></tr>
+<tr><td>列宽</td><td>根据内容自动调整</td></tr>
+<h3>6.4 条件格式设置</h3>
+<p>为筛选结果区域设置条件格式：</p>
+<ul><li>偶数行背景色：RGB(245,245,245)（浅灰色）</li><li>奇数行背景色：白色</li><li>鼠标悬停高亮：RGB(255,255,153)（黄色）</li></ul>
+<hr>
+<h2>七、使用说明</h2>
+<h3>7.1 操作步骤</h3>
+<ol><li><strong>下载原始岗位表</strong>：从国家公务员局官网下载招考简章Excel文件</li><li><strong>复制数据</strong>：将岗位表数据复制到模板的"原始岗位表"工作表中</li><li><strong>输入筛选条件</strong>：在"智能筛选表"的条件输入区域选择或输入筛选条件</li><li><strong>查看结果</strong>：筛选结果会自动显示在下方的结果区域</li><li><strong>切换预设筛选</strong>：点击底部工作表标签切换到应届生专筛、不限专业专筛等</li></ol>
+<h3>7.2 注意事项</h3>
+<ol><li><strong>数据范围</strong>：公式中的数据范围需根据实际岗位数量调整（当前设置为10000行）</li><li><strong>专业匹配</strong>：专业关键词为模糊匹配，输入专业名称的任意部分即可</li><li><strong>工作地点匹配</strong>：工作地点为模糊匹配，输入城市名称即可</li><li><strong>不限条件</strong>：选择"不限"或留空表示不限制该条件</li><li><strong>公式更新</strong>：修改条件后Excel会自动重新计算，确保启用了自动计算功能</li></ol>
+<h3>7.3 常见问题</h3>
+<strong>Q：筛选结果不显示怎么办？</strong>
+<p>A：检查以下几点：</p>
+<ol><li>确认原始岗位表中有数据</li><li>确认条件输入正确</li><li>确认公式已按Ctrl+Shift+Enter确认</li><li>确认Excel启用了自动计算（文件→选项→公式→计算选项→自动）</li></ol>
+<strong>Q：专业匹配不到怎么办？</strong>
+<p>A：尝试以下方法：</p>
+<ol><li>输入更简短的关键词（如"计算机"而非"计算机科学与技术"）</li><li>确认专业名称拼写正确</li><li>检查原始岗位表中的专业字段是否有空格或特殊字符</li></ol>
+<strong>Q：如何添加更多筛选条件？</strong>
+<p>A：参考现有条件的设置方法：</p>
+<ol><li>在数据源工作表中添加新选项</li><li>在智能筛选表中添加新的条件输入单元格</li><li>在原始岗位表中添加新的辅助列</li><li>修改总匹配结果公式，包含新的条件</li></ol>
+<hr>
+<h2>八、模板扩展功能</h2>
+<h3>8.1 一键清空条件按钮</h3>
+<p>添加VBA宏实现一键清空所有筛选条件：</p>
+<pre><code>Sub ClearFilters()
+<p>    Range("B1:B10").ClearContents</p>
+<p>    Range("B1").Value = "不限"</p>
+<p>    Range("B2").Value = "不限"</p>
+<p>    Range("B4").Value = "不限"</p>
+<p>    Range("B5").Value = "不限"</p>
+<p>    Range("B6").Value = "不限"</p>
+<p>    Range("B7").Value = "不限"</p>
+<p>    Range("B8").Value = "不限"</p>
+<p>    Range("B10").Value = "不限"</p>
+<p>End Sub</p>
+</code></pre>
+<h3>8.2 导出筛选结果</h3>
+<p>添加VBA宏将筛选结果导出为新文件：</p>
+<pre><code>Sub ExportResults()
+<p>    Dim ws As Worksheet</p>
+<p>    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))</p>
+<p>    ws.Name = "筛选结果导出"</p>
+<p>    ThisWorkbook.Sheets("智能筛选表").Range("A14:Q10000").Copy</p>
+<p>    ws.Range("A1").PasteSpecial Paste:=xlPasteValues</p>
+<p>    ws.Range("A1").PasteSpecial Paste:=xlPasteFormats</p>
+<p>    Application.CutCopyMode = False</p>
+<p>    MsgBox "筛选结果已导出到新工作表！"</p>
+<p>End Sub</p>
+</code></pre>
+<h3>8.3 条件保存功能</h3>
+<p>添加VBA宏保存当前筛选条件：</p>
+<pre><code>Sub SaveFilter()
+<p>    Dim filterName As String</p>
+<p>    filterName = InputBox("请输入筛选条件名称：")</p>
+<p>    If filterName <> "" Then</p>
+<p>        ThisWorkbook.Names.Add Name:=filterName, RefersTo:=Range("B1:B10")</p>
+<p>        MsgBox "筛选条件已保存为：" & filterName</p>
+<p>    End If</p>
+<p>End Sub</p>
+</code></pre>
+<hr>
+<strong>岗策工具箱整理</strong>
+<p>*本说明为信息整合原创改写，无版权风险。*</p>
+</table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+name = "gk-api"
+main = "index.js"
+compatibility_date = "2024-07-14"
+
+[vars]
+SITE_DOMAIN = "https://gk.minicode.cloud"
+HUPIJIA_APP_ID = "201906179658"
+HUPIJIA_APP_SECRET = "d097ec838557c0f3aaebc5c5a00a7aab"
+ADMIN_PASSWORD = "admin123"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gk-db"
+database_id = "7e9e2bc1-cc6c-4889-8bcc-a697961559d4"

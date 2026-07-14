@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [],
+  "rules": [
+    {
+      "pattern": "/api/*",
+      "target": "workers",
+      "worker": "gk-api"
+    }
+  ]
+}
