@@ -1,4 +1,4 @@
-# 岗策工具箱 - 公考备考原创工具素材站
+# 国考资料工具 - 公考备考原创工具素材站
 
 > 精简备考工具，降低选岗与复习成本
 
@@ -22,10 +22,15 @@ gk-minicode/
 ├─ docs/               # 部署与 API 文档
 │   ├─ deploy-guide.md
 │   ├─ config-checklist.md
-│   └─ api-reference.md
+│   ├─ api-reference.md
+│   └─ workflow.md
 ├─ scripts/            # 部署脚本工具
-│   ├─ deploy.sh
-│   └─ setup.sh
+│   ├─ deploy.ps1      # Windows 一键部署脚本
+│   ├─ rollback.ps1    # Windows 紧急回滚脚本
+│   ├─ deploy.sh       # Linux/Mac 部署脚本
+│   ├─ setup.sh        # 环境初始化脚本
+│   ├─ batch_convert.py # 批量转换工具
+│   └─ html_to_pdf.py   # HTML转PDF工具
 ├─ prompts/            # AI 资料生成提示词
 │   ├─ 岗位筛选提示词.txt
 │   ├─ 行测提示词.txt
@@ -38,6 +43,7 @@ gk-minicode/
 │   ├─ 03_申论写作素材&答题模板/
 │   ├─ 04_时政汇总&常识背诵手册/
 │   └─ 05_面试+政审全套流程文档/
+├─ .gitignore
 └─ README.md
 ```
 
@@ -47,12 +53,14 @@ gk-minicode/
 用户访问 → gk.minicode.cloud（CF代理）
 ├─ 页面静态资源 → Cloudflare Pages 前端商城
 ├─ /api/* 接口请求 → 转发至 Cloudflare Workers
+│  ├─ 用户注册/登录 /api/register /api/login
+│  ├─ 密码找回 /api/reset-pwd
+│  ├─ 会员购买 /api/buy-member
+│  ├─ 分销申请 /api/apply-distributor
 │  ├─ 支付回调 /api/callback
 │  ├─ 创建订单 /api/createorder
-│  ├─ 查询订单 /api/order/:tid
-│  ├─ 商品列表 /api/goods
 │  └─ 后台管理 /api/admin
-└─ 数据持久层：D1 SQLite数据库（商品表、订单表、卡密表）
+└─ 数据持久层：D1 SQLite数据库（用户表、会员表、分销商表、订单表、卡密表）
 ```
 
 ### 技术栈
@@ -64,6 +72,7 @@ gk-minicode/
 | 数据库 | Cloudflare D1 | SQLite 兼容，零维护 |
 | 支付 | 虎皮椒聚合支付 | 支持微信、支付宝 |
 | 存储 | 百度网盘 | 文件分发，按流量计费 |
+| 版本控制 | GitHub + Git Tags | 代码备份与版本回滚 |
 
 ## 🚀 快速开始
 
@@ -72,6 +81,7 @@ gk-minicode/
 - Cloudflare 账号
 - 虎皮椒支付账号
 - 已接入 Cloudflare 的域名（如 minicode.cloud）
+- GitHub 账号（用于代码备份）
 
 ### 部署步骤
 
@@ -90,7 +100,7 @@ gk-minicode/
 
 3. **部署 Pages**
    ```bash
-   # 创建 Pages 项目
+   # 创建 Pages 项目 gk-minicode-pages
    # 上传 pages/ 目录所有文件
    # 绑定自定义域名 gk.minicode.cloud
    ```
@@ -101,17 +111,43 @@ gk-minicode/
    # gk → xxx.pages.dev（代理开启）
    ```
 
+5. **关联 GitHub 仓库**
+   ```bash
+   # 在 CF Pages 项目设置中关联
+   # https://github.com/shenchao826/gk-minicode
+   # 开启自动部署
+   ```
+
 详细部署指南见 [docs/deploy-guide.md](docs/deploy-guide.md)
 
 ## 📦 核心功能
 
 ### 前端商城
-- ✅ 商品卡片展示（支持标签、悬浮动效）
+- ✅ 商品卡片展示（支持标签、悬浮动效、按钮高度对齐）
 - ✅ 订单弹窗（支付成功展示网盘链接）
 - ✅ 一键复制链接+提取码
 - ✅ 手动订单查询入口
-- ✅ FAQ 常见问题解答
+- ✅ FAQ 常见问题解答（折叠式）
 - ✅ 移动端自适应
+
+### 用户系统
+- ✅ 用户注册（手机号+密码，无验证码）
+- ✅ 用户登录
+- ✅ 密码找回（无需验证码）
+
+### 会员系统
+- ✅ 普通会员（99元/年）
+- ✅ VIP会员（199元/年）
+- ✅ 至尊会员（399元/终身）
+- ✅ 会员专属折扣
+- ✅ 会员权益展示卡片
+
+### 分销返佣系统
+- ✅ 分销商申请
+- ✅ 邀请码生成
+- ✅ 佣金计算（三级分销）
+- ✅ 佣金提现申请
+- ✅ 分销商后台中心
 
 ### 后台管理
 - ✅ 商品增删改查
@@ -130,6 +166,15 @@ gk-minicode/
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
+| /api/register | POST | 用户注册 |
+| /api/login | POST | 用户登录 |
+| /api/reset-pwd | POST | 密码找回 |
+| /api/user | GET | 获取用户信息 |
+| /api/member | GET | 获取会员信息 |
+| /api/buy-member | POST | 购买会员 |
+| /api/apply-distributor | POST | 申请分销商 |
+| /api/distributor | GET | 获取分销商信息 |
+| /api/withdraw | POST | 佣金提现 |
 | /api/goods | GET | 获取商品列表 |
 | /api/createorder | POST | 创建订单 |
 | /api/order/:tid | GET | 查询订单 |
@@ -178,6 +223,38 @@ gk-minicode/
 - Binding name: `DB`
 - Database: `gk-db`
 
+### Cloudflare API 环境变量（用于回滚脚本）
+
+| 变量名 | 值 |
+|--------|-----|
+| CLOUDFLARE_API_TOKEN | Cloudflare API Token |
+| CLOUDFLARE_ACCOUNT_ID | Cloudflare Account ID |
+
+## 🔄 版本控制与回滚
+
+### GitHub 仓库
+- **仓库地址**: https://github.com/shenchao826/gk-minicode
+- **分支**: `main`
+- **版本标签**: `v1.0.0`
+
+### 部署命令
+
+```powershell
+# Windows
+.\scripts\deploy.ps1 -Version v1.1.0 -Message "修复按钮对齐问题"
+```
+
+### 回滚命令
+
+```powershell
+# Windows
+.\scripts\rollback.ps1 -Version v1.0.0
+```
+
+### Cloudflare Pages 回滚
+- 访问: https://dash.cloudflare.com/xxx/pages/view/gk-minicode-pages/deployments
+- 选择历史部署 → 点击 "Activate deployment"
+
 ## 🔒 安全配置
 
 ### CF WAF 规则
@@ -195,10 +272,10 @@ gk-minicode/
 ## 📝 后续扩容
 
 - 多子域名分站（事业单位、省考）
-- 会员套餐系统
-- 分销返佣模块
-- R2 对象存储替代网盘
 - 资料预览功能
+- R2 对象存储替代网盘
+- 用户数据分析面板
+- 优惠券/促销活动系统
 
 ## 📄 许可证
 
@@ -206,4 +283,4 @@ MIT License
 
 ---
 
-**岗策工具箱** © 2026 - 公考备考原创工具素材站
+**国考资料工具** © 2026 - 公考备考原创工具素材站
