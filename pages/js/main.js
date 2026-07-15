@@ -171,7 +171,6 @@ window.onload = async () => {
   loadMemberConfig();
   loadMonthlyUpdates();
   checkLogin();
-  initFAQ();
 
   const params = new URLSearchParams(location.hash.slice(1));
   const tid = params.get("tid");
