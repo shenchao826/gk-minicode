@@ -1,0 +1,7 @@
+name = "gk-minicode-pages"
+account_id = "1dc7693c140b7012d30858beb61e555b"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gk-db"
+database_id = "gk-db"

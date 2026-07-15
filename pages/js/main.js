@@ -1,5 +1,5 @@
 let tradeNo = "";
-const apiPrefix = "https://gk-api.13365616616.workers.dev/api";
+const apiPrefix = "/api";
 let currentPanLink = "";
 let currentPanCode = "";
 let allGoods = [];
