@@ -16,6 +16,6 @@ jobs:
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: 13365616616
-          projectName: gk-minicode-pages
+          accountId: "13365616616"
+          projectName: "edu-minicode"
           directory: pages
