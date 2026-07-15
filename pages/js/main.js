@@ -240,13 +240,8 @@ function closeMonthlyModal() {
   document.getElementById("monthlyModal").classList.remove("show");
 }
 
-function initFAQ() {
-  document.querySelectorAll('.faq-q').forEach(q => {
-    q.addEventListener('click', function() {
-      const faqItem = this.parentElement;
-      faqItem.classList.toggle('active');
-    });
-  });
+function toggleFaq(el) {
+  el.classList.toggle('active');
 }
 
 function checkLogin() {
