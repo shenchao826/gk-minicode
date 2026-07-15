@@ -1,0 +1,4 @@
+name = "gk-minicode-pages"
+
+[d1_databases]
+gk-db = { binding = "DB", database_name = "gk-db", database_id = "7e9e2bc1-cc6c-4889-8bcc-a697961559d4" }
