@@ -12,14 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Wrangler
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Deploy to Cloudflare Pages
-        run: |
-          cd /home/runner/work/gk-minicode/gk-minicode
-          npx wrangler pages deploy --project-name gk-minicode-pages --branch main
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: "1dc7693c140b7012d30858beb61e555b"
+          projectName: "gk-minicode-pages"
+          directory: "pages"
