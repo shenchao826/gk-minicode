@@ -116,6 +116,22 @@
     </div>
   </div>
 
+  <div class="modal" id="payModal">
+    <div class="modal-box">
+      <h2>确认支付</h2>
+      <div class="modal-body" id="payBody"></div>
+      <button class="buy-btn" id="payConfirmBtn" style="width:100%">确认支付</button>
+      <button class="btn-close" onclick="document.getElementById('payModal').classList.remove('show')">取消</button>
+    </div>
+  </div>
+
+  <div class="modal" id="loadingModal">
+    <div class="modal-box" style="text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">⏳</div>
+      <p id="loadingText">加载中...</p>
+    </div>
+  </div>
+
   <div class="modal" id="loginModal">
     <div class="modal-box">
       <div class="login-tabs">
@@ -303,6 +319,6 @@
   </footer>
 </div>
 
-<script src="js/main.js?v=2026071705"></script>
+<script src="js/main.js?v=2026071706"></script>
 </body>
 </html>

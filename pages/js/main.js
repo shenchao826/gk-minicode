@@ -151,23 +151,62 @@ async function buy(goodsId) {
   
   const tradeNo = "GK" + Date.now();
   
-  currentPanLink = "https://pan.baidu.com/s/1234567890abcdef";
-  currentPanCode = "gk" + goodsId;
+  const payModal = document.getElementById("payModal");
+  const payBody = document.getElementById("payBody");
+  const payConfirmBtn = document.getElementById("payConfirmBtn");
   
-  const modal = document.getElementById("orderModal");
-  const body = document.getElementById("orderBody");
-  const copyBtn = document.getElementById("copyBtn");
-  
-  body.innerHTML = `
-    <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
-    <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
-    <p style="margin-top:8px"><strong>支付金额：</strong>¥${goods.price.toFixed(2)}</p>
-    <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
-    <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
-    <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
+  payBody.innerHTML = `
+    <p style="font-size:16px;font-weight:600;margin-bottom:16px">确认订单</p>
+    <p><strong>商品名称：</strong>${goods.title}</p>
+    <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${goods.price.toFixed(2)}</span></p>
+    <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
+    <div style="margin-top:16px;padding:12px;background:#F7FAFC;border-radius:8px">
+      <p style="font-size:14px;font-weight:500;margin-bottom:8px">支付方式</p>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;padding:10px;border:2px solid #2F855A;border-radius:8px;text-align:center">
+          <div style="font-size:24px">💳</div>
+          <div style="font-size:12px;margin-top:4px;color:#666">微信支付</div>
+        </div>
+        <div style="flex:1;padding:10px;border:2px solid #E2E8F0;border-radius:8px;text-align:center">
+          <div style="font-size:24px">📱</div>
+          <div style="font-size:12px;margin-top:4px;color:#666">支付宝</div>
+        </div>
+      </div>
+    </div>
   `;
-  copyBtn.style.display = "block";
-  modal.classList.add("show");
+  
+  payConfirmBtn.onclick = () => {
+    payModal.classList.remove("show");
+    
+    const loadingModal = document.getElementById("loadingModal");
+    const loadingText = document.getElementById("loadingText");
+    loadingText.textContent = "正在跳转到支付页面...";
+    loadingModal.classList.add("show");
+    
+    setTimeout(() => {
+      loadingModal.classList.remove("show");
+      
+      const successModal = document.getElementById("orderModal");
+      const body = document.getElementById("orderBody");
+      const copyBtn = document.getElementById("copyBtn");
+      
+      currentPanLink = "https://pan.baidu.com/s/1234567890abcdef";
+      currentPanCode = "gk" + goodsId;
+      
+      body.innerHTML = `
+        <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
+        <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
+        <p style="margin-top:8px"><strong>支付金额：</strong>¥${goods.price.toFixed(2)}</p>
+        <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
+        <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
+        <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
+      `;
+      copyBtn.style.display = "block";
+      successModal.classList.add("show");
+    }, 2000);
+  };
+  
+  payModal.classList.add("show");
 }
 
 async function buyMember(level) {
@@ -185,23 +224,63 @@ async function buyMember(level) {
   
   const tradeNo = "VIP" + Date.now();
   
-  currentUser.member = { level: level };
-  localStorage.setItem("gk_user", JSON.stringify(currentUser));
-  updateUserArea();
+  const payModal = document.getElementById("payModal");
+  const payBody = document.getElementById("payBody");
+  const payConfirmBtn = document.getElementById("payConfirmBtn");
   
-  const modal = document.getElementById("orderModal");
-  const body = document.getElementById("orderBody");
-  const copyBtn = document.getElementById("copyBtn");
-  
-  body.innerHTML = `
-    <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
-    <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
-    <p style="margin-top:8px"><strong>支付金额：</strong>¥${config.price}</p>
+  payBody.innerHTML = `
+    <p style="font-size:16px;font-weight:600;margin-bottom:16px">确认订单</p>
+    <p><strong>会员等级：</strong>${config.name}</p>
+    <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${config.price}</span></p>
     <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
-    <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场${(config.price/99*100).toFixed(0)}折优惠</p>
+    <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
+    <div style="margin-top:16px;padding:12px;background:#F7FAFC;border-radius:8px">
+      <p style="font-size:14px;font-weight:500;margin-bottom:8px">支付方式</p>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;padding:10px;border:2px solid #2F855A;border-radius:8px;text-align:center">
+          <div style="font-size:24px">💳</div>
+          <div style="font-size:12px;margin-top:4px;color:#666">微信支付</div>
+        </div>
+        <div style="flex:1;padding:10px;border:2px solid #E2E8F0;border-radius:8px;text-align:center">
+          <div style="font-size:24px">📱</div>
+          <div style="font-size:12px;margin-top:4px;color:#666">支付宝</div>
+        </div>
+      </div>
+    </div>
   `;
-  copyBtn.style.display = "none";
-  modal.classList.add("show");
+  
+  payConfirmBtn.onclick = () => {
+    payModal.classList.remove("show");
+    
+    const loadingModal = document.getElementById("loadingModal");
+    const loadingText = document.getElementById("loadingText");
+    loadingText.textContent = "正在跳转到支付页面...";
+    loadingModal.classList.add("show");
+    
+    setTimeout(() => {
+      loadingModal.classList.remove("show");
+      
+      currentUser.member = { level: level };
+      localStorage.setItem("gk_user", JSON.stringify(currentUser));
+      updateUserArea();
+      
+      const successModal = document.getElementById("orderModal");
+      const body = document.getElementById("orderBody");
+      const copyBtn = document.getElementById("copyBtn");
+      
+      body.innerHTML = `
+        <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
+        <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
+        <p style="margin-top:8px"><strong>支付金额：</strong>¥${config.price}</p>
+        <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
+        <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场${(config.price/99*100).toFixed(0)}折优惠</p>
+      `;
+      copyBtn.style.display = "none";
+      successModal.classList.add("show");
+    }, 2000);
+  };
+  
+  payModal.classList.add("show");
 }
 
 window.onload = () => {
