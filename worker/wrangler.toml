@@ -4,6 +4,7 @@ compatibility_date = "2024-07-14"
 
 [vars]
 SITE_DOMAIN = "https://gk.minicode.cloud"
+API_DOMAIN = "https://gk-api.minicode.cloud"
 HUPIJIA_APP_ID = "201906179658"
 
 # 以下敏感配置通过 wrangler secret put 设置，不在 vars 中明文存储
