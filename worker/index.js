@@ -1,18 +1,19 @@
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const siteDomain = env.SITE_DOMAIN || "";
-    const adminPwd = env.ADMIN_PASSWORD || "";
-    const hupiAppId = env.HUPIJIA_APP_ID || "";
-    const hupiAppSecret = env.HUPIJIA_APP_SECRET || "";
+    try {
+      const url = new URL(request.url);
+      const path = url.pathname;
+      const siteDomain = env.SITE_DOMAIN || "";
+      const adminPwd = env.ADMIN_PASSWORD || "";
+      const hupiAppId = env.HUPIJIA_APP_ID || "";
+      const hupiAppSecret = env.HUPIJIA_APP_SECRET || "";
 
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type,Authorization",
-    };
-    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+      const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+      };
+      if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
     if (path === "/api/callback" && request.method === "POST") {
       let callbackData;
@@ -143,6 +144,10 @@ export default {
         wap_name: '国考资料工具'
       };
       
+      if (!hupiAppSecret) {
+        return json({code:-1,msg:"支付配置未完成，请联系管理员"});
+      }
+      
       const signStr = Object.keys(params)
         .sort()
         .filter(key => params[key])
@@ -156,19 +161,23 @@ export default {
       const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       params.hash = hash;
 
-      const res = await fetch('https://api.xunhupay.com/payment/do.html', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
-      });
-      
-      const result = await res.json();
-      
-      if (result.errcode !== 0 && result.errcode !== undefined) {
-        return json({code:-1,msg:result.errmsg || '创建支付订单失败'});
+      try {
+        const res = await fetch('https://api.xunhupay.com/payment/do.html', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params)
+        });
+        
+        const result = await res.json();
+        
+        if (result.errcode !== 0 && result.errcode !== undefined) {
+          return json({code:-1,msg:result.errmsg || '创建支付订单失败'});
+        }
+        
+        return json({code:0,data:{payUrl:result.url || result.url_qrcode || '',tradeNo:outTradeNo,finalPrice}});
+      } catch(e) {
+        return json({code:-1,msg:"支付接口调用失败:" + e.message});
       }
-      
-      return json({code:0,data:{payUrl:result.url || result.url_qrcode || '',tradeNo:outTradeNo,finalPrice}});
     }
 
     if (path.startsWith("/api/order/")) {
@@ -288,8 +297,12 @@ export default {
     }
 
     if (path === "/api/goods") {
-      const list = await env.DB.prepare("SELECT * FROM goods ORDER BY sort DESC").all();
-      return json({code:0,data:list.results});
+      try {
+        const list = await env.DB.prepare("SELECT * FROM goods ORDER BY sort DESC").all();
+        return json({code:0,data:list.results});
+      } catch(e) {
+        return json({code:-1,msg:"查询商品失败:" + e.message});
+      }
     }
 
     if (path === "/api/monthly-updates") {
@@ -693,7 +706,11 @@ export default {
       return json({code:0,data:res.results});
     }
 
-    return new Response("Not Found",{status:404});
+      return new Response("Not Found",{status:404});
+    } catch(e) {
+      console.error('Worker Error:', e.message);
+      return new Response(JSON.stringify({code:-1,msg:"服务器错误:" + e.message}),{status:500,headers:{"Content-Type":"application/json"}});
+    }
   },
 
   async scheduled(event, env, ctx) {

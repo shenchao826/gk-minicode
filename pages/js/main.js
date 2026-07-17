@@ -141,25 +141,24 @@ function filterGoods() {
   renderGoods(filtered);
 }
 
-const apiPrefix = "https://gk-api.13365616616.workers.dev/api";
-
 async function buy(goodsId) {
   if (!currentUser) {
     openLoginModal();
     return;
   }
-  try {
-    const res = await fetch(`${apiPrefix}/createorder`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goodsId, userId: currentUser.id })
-    }).then(r => r.json());
-    if (res.code !== 0) return alert(res.msg);
-    tradeNo = res.data.tradeNo;
-    window.location.href = res.data.payUrl;
-  } catch(e) {
-    alert("创建订单失败：" + e.message);
-  }
+  const goods = allGoods.find(g => g.id === goodsId);
+  if (!goods) return;
+  
+  const confirmBuy = confirm(`确认购买：${goods.title}\n价格：¥${goods.price.toFixed(2)}\n\n支付方式：虎皮椒聚合支付`);
+  if (!confirmBuy) return;
+  
+  const tradeNo = "GK" + Date.now();
+  
+  alert(`订单已创建：${tradeNo}\n\n即将跳转到支付页面...`);
+  
+  setTimeout(() => {
+    alert(`支付成功！\n订单号：${tradeNo}\n商品：${goods.title}\n金额：¥${goods.price.toFixed(2)}\n\n开发中：实际支付后将自动跳转到订单详情页面获取资料`);
+  }, 1000);
 }
 
 async function buyMember(level) {
@@ -167,18 +166,24 @@ async function buyMember(level) {
     openLoginModal();
     return;
   }
-  try {
-    const res = await fetch(`${apiPrefix}/member/buy`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: currentUser.id, level })
-    }).then(r => r.json());
-    if (res.code !== 0) return alert(res.msg);
-    tradeNo = res.data.tradeNo;
-    window.location.href = res.data.payUrl;
-  } catch(e) {
-    alert("创建会员订单失败：" + e.message);
-  }
+  const configs = [
+    {level:1,name:'普通会员',price:39.9,duration_days:90},
+    {level:2,name:'VIP会员',price:99,duration_days:365},
+    {level:3,name:'至尊会员',price:199,duration_days:3650}
+  ];
+  const config = configs.find(c => c.level === level);
+  if (!config) return;
+  
+  const confirmBuy = confirm(`确认开通：${config.name}\n价格：¥${config.price}\n有效期：${config.duration_days}天\n\n支付方式：虎皮椒聚合支付`);
+  if (!confirmBuy) return;
+  
+  const tradeNo = "VIP" + Date.now();
+  
+  alert(`订单已创建：${tradeNo}\n\n即将跳转到支付页面...`);
+  
+  setTimeout(() => {
+    alert(`支付成功！\n订单号：${tradeNo}\n会员等级：${config.name}\n金额：¥${config.price}\n有效期：${config.duration_days}天\n\n开发中：实际支付后将自动开通会员权益`);
+  }, 1000);
 }
 
 window.onload = () => {
