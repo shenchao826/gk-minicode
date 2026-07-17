@@ -2,10 +2,10 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-    const siteDomain = env.SITE_DOMAIN;
-    const adminPwd = env.ADMIN_PASSWORD;
-    const hupiAppId = env.HUPIJIA_APP_ID;
-    const hupiAppSecret = env.HUPIJIA_APP_SECRET;
+    const siteDomain = env.SITE_DOMAIN || "";
+    const adminPwd = env.ADMIN_PASSWORD || "";
+    const hupiAppId = env.HUPIJIA_APP_ID || "";
+    const hupiAppSecret = env.HUPIJIA_APP_SECRET || "";
 
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
@@ -181,6 +181,110 @@ export default {
         WHERE o.trade_id=?
       `).bind(tid).first();
       return json({code:0,data:order});
+    }
+
+    if (path === "/api/init-db") {
+      try {
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS goods (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            price REAL NOT NULL,
+            description TEXT,
+            sort INTEGER DEFAULT 0
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS card (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            goods_id INTEGER NOT NULL,
+            pan_link TEXT NOT NULL,
+            pan_code TEXT NOT NULL,
+            is_used TINYINT DEFAULT 0,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS orders (
+            trade_id TEXT PRIMARY KEY,
+            goods_id INTEGER NOT NULL,
+            card_id INTEGER DEFAULT 0,
+            user_id INTEGER DEFAULT 0,
+            referrer_id INTEGER DEFAULT 0,
+            pay_amount REAL NOT NULL,
+            status TINYINT DEFAULT 0,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            pay_at TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            nickname TEXT DEFAULT '',
+            avatar TEXT DEFAULT '',
+            invite_code TEXT UNIQUE,
+            referrer_id INTEGER DEFAULT 0,
+            reset_at TIMESTAMP,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS members (
+            user_id INTEGER PRIMARY KEY,
+            level TINYINT DEFAULT 0,
+            expire_at TIMESTAMP,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS distributors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL UNIQUE,
+            invite_code TEXT NOT NULL UNIQUE,
+            commission_rate REAL DEFAULT 0.15,
+            total_commission REAL DEFAULT 0,
+            available_commission REAL DEFAULT 0,
+            status TINYINT DEFAULT 0,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS referral_orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            referrer_id INTEGER NOT NULL,
+            commission REAL DEFAULT 0,
+            status TINYINT DEFAULT 0,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+        await env.DB.prepare(`
+          CREATE TABLE IF NOT EXISTS monthly_updates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            month TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            content TEXT,
+            create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `).run();
+
+        const exist = await env.DB.prepare("SELECT COUNT(*) as cnt FROM goods").first();
+        if (exist.cnt === 0) {
+          await env.DB.prepare(`INSERT INTO goods (id,title,price,description,sort) VALUES
+            (1,'岗位报考筛选专区',1.99,'岗位筛选工具Excel模板，含往年岗位表、筛选公式、避坑指南',5),
+            (2,'行测提分突破营',19.9,'行测五大模块技巧解析、高频考点、易错点总结',4),
+            (3,'申论写作黄金模板',29.9,'申论万能模板、热点素材、高分范文',3),
+            (4,'时政常识速记手册',12.9,'最新时政热点、常识考点、模拟题',2),
+            (5,'国考全套资料大礼包',49.9,'包含以上全部内容，超值合集',1)
+          `).run();
+        }
+        return json({code:0,msg:"数据库初始化成功"});
+      } catch(e) {
+        return json({code:-1,msg:"初始化失败:"+e.message});
+      }
     }
 
     if (path === "/api/goods") {

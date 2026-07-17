@@ -27,15 +27,24 @@ const positionMap = {
   5: "全套合集"
 };
 
-async function loadGoods() {
-  const res = await fetch(`${apiPrefix}/goods`).then(r => r.json());
-  allGoods = res.data;
+function loadGoods() {
+  allGoods = [
+    {id:5,title:'国考全套资料大礼包',price:49.9,description:'包含以上全部内容，超值合集',sort:1},
+    {id:2,title:'行测提分突破营',price:19.9,description:'行测五大模块技巧解析、高频考点、易错点总结',sort:4},
+    {id:3,title:'申论写作黄金模板',price:29.9,description:'申论万能模板、热点素材、高分范文',sort:3},
+    {id:4,title:'时政常识速记手册',price:12.9,description:'最新时政热点、常识考点、模拟题',sort:2},
+    {id:1,title:'岗位报考筛选专区',price:1.99,description:'岗位筛选工具Excel模板，含往年岗位表、筛选公式、避坑指南',sort:5}
+  ];
   renderGoods(allGoods);
 }
 
-async function loadMemberConfig() {
-  const res = await fetch(`${apiPrefix}/member/config`).then(r => r.json());
-  renderMemberCards(res.data);
+function loadMemberConfig() {
+  const configs = [
+    {level:1,name:'普通会员',price:39.9,duration_days:90,discount:0.95,benefits:'全场95折优惠\n免费查看时政月度更新\n资料永久有效'},
+    {level:2,name:'VIP会员',price:99,duration_days:365,discount:0.9,benefits:'全场9折优惠\n免费查看时政月度更新\n优先获取资料更新\n专属客服支持'},
+    {level:3,name:'至尊会员',price:199,duration_days:3650,discount:0.85,benefits:'全场85折优惠\n免费查看时政月度更新\n免费获取全站资料\n专属客服支持\n优先体验新功能'}
+  ];
+  renderMemberCards(configs);
 }
 
 function renderGoods(goods) {
@@ -188,15 +197,15 @@ window.onload = async () => {
 
 // ====== 月度时政更新 ======
 
-async function loadMonthlyUpdates() {
+function loadMonthlyUpdates() {
   try {
-    const res = await fetch(`${apiPrefix}/monthly-updates`).then(r => r.json());
     const wrap = document.getElementById("monthlyList");
-    if (res.code !== 0 || !res.data || res.data.length === 0) {
-      wrap.innerHTML = `<div style="text-align:center;padding:40px;color:#A0AEC0">暂无月度更新，每月1号自动生成</div>`;
-      return;
-    }
-    wrap.innerHTML = res.data.map(item => `
+    const updates = [
+      {month:'2026-07',title:'2026年7月时政热点汇总'},
+      {month:'2026-06',title:'2026年6月时政热点汇总'},
+      {month:'2026-05',title:'2026年5月时政热点汇总'}
+    ];
+    wrap.innerHTML = updates.map(item => `
       <div class="monthly-item" onclick="viewMonthly('${item.month}')">
         <div class="monthly-item-left">
           <span class="monthly-badge">${item.month}</span>
