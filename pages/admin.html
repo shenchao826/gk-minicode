@@ -72,6 +72,7 @@ tr:hover{background:#F7FAFC}
     <a href="#" onclick="showTab('cards')">卡密管理</a>
     <a href="#" onclick="showTab('distributors')">分销管理</a>
     <a href="#" onclick="showTab('referralOrders')">分销订单</a>
+    <a href="#" onclick="showTab('withdrawals')">提现管理</a>
     <a href="#" onclick="showTab('addGoods')">新增商品</a>
     <a href="#" onclick="showTab('importCard')">导入卡密</a>
     <button class="logout-btn" style="width:100%;margin-top:20px;text-align:left" onclick="logout()">退出登录</button>
@@ -177,6 +178,25 @@ tr:hover{background:#F7FAFC}
         </table>
       </div>
     </div>
+
+    <div id="withdrawalsTab" class="tab-content" style="display:none">
+      <div class="card">
+        <h3>提现管理</h3>
+        <div class="card-actions">
+          <select id="withdrawStatusSelect" onchange="loadWithdrawals()">
+            <option value="">全部</option>
+            <option value="0">待打款</option>
+            <option value="1">已打款</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>手机号</th><th>昵称</th><th>提现金额</th><th>状态</th><th>申请时间</th><th>操作</th></tr>
+          </thead>
+          <tbody id="withdrawalsTable"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -251,6 +271,7 @@ function showTab(tab) {
   if (tab === "importCard") loadGoodsSelect();
   if (tab === "distributors") loadDistributors();
   if (tab === "referralOrders") loadReferralOrders();
+  if (tab === "withdrawals") loadWithdrawals();
 }
 
 async function loadGoods() {
@@ -451,6 +472,43 @@ async function editDistributor(userId) {
   }).then(r => r.json());
   alert("修改成功");
   loadDistributors();
+}
+
+async function loadWithdrawals() {
+  const status = document.getElementById("withdrawStatusSelect").value;
+  const url = status ? `${apiPrefix}/admin/withdrawals?status=${status}` : `${apiPrefix}/admin/withdrawals`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+  const tbody = document.getElementById("withdrawalsTable");
+  tbody.innerHTML = "";
+  if (!res.data || res.data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">暂无数据</td></tr>`;
+    return;
+  }
+  res.data.forEach(item => {
+    const statusText = item.status === 1 ? `<span class="status-1">已打款</span>` : `<span class="status-0">待打款</span>`;
+    const actions = item.status === 0 ? `<button class="btn btn-primary" onclick="approveWithdraw(${item.id})">确认已打款</button>` : `<span style="color:#A0AEC0">已处理</span>`;
+    tbody.innerHTML += `<tr>
+      <td>${item.id}</td>
+      <td>${item.phone || "-"}</td>
+      <td>${item.nickname || "-"}</td>
+      <td>¥${item.amount.toFixed(2)}</td>
+      <td>${statusText}</td>
+      <td>${item.create_at}</td>
+      <td>${actions}</td>
+    </tr>`;
+  });
+}
+
+async function approveWithdraw(id) {
+  if (!confirm("确认已打款给该用户？")) return;
+  const res = await fetch(`${apiPrefix}/admin/withdrawals`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id })
+  }).then(r => r.json());
+  if (res.code !== 0) return alert(res.msg);
+  alert("已标记为已打款");
+  loadWithdrawals();
 }
 
 async function loadReferralOrders() {

@@ -105,6 +105,16 @@ CREATE TABLE IF NOT EXISTS monthly_updates (
   create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 提现记录表
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  amount REAL NOT NULL,
+  status INTEGER NOT NULL DEFAULT 0,
+  create_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+  approve_at TEXT
+);
+
 -- 管理员token表
 CREATE TABLE IF NOT EXISTS admin_tokens (
   token TEXT PRIMARY KEY,
