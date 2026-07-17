@@ -1,5 +1,4 @@
 let tradeNo = "";
-const apiPrefix = "/api";
 let currentPanLink = "";
 let currentPanCode = "";
 let allGoods = [];
@@ -40,9 +39,9 @@ function loadGoods() {
 
 function loadMemberConfig() {
   const configs = [
-    {level:1,name:'普通会员',price:39.9,duration_days:90,discount:0.95,benefits:'全场95折优惠\n免费查看时政月度更新\n资料永久有效'},
-    {level:2,name:'VIP会员',price:99,duration_days:365,discount:0.9,benefits:'全场9折优惠\n免费查看时政月度更新\n优先获取资料更新\n专属客服支持'},
-    {level:3,name:'至尊会员',price:199,duration_days:3650,discount:0.85,benefits:'全场85折优惠\n免费查看时政月度更新\n免费获取全站资料\n专属客服支持\n优先体验新功能'}
+    {level:1,name:'普通会员',price:39.9,duration_days:90,discount:0.95,benefits:'全场95折优惠、免费查看时政月度更新、资料永久有效'},
+    {level:2,name:'VIP会员',price:99,duration_days:365,discount:0.9,benefits:'全场9折优惠、免费查看时政月度更新、优先获取资料更新、专属客服支持'},
+    {level:3,name:'至尊会员',price:199,duration_days:3650,discount:0.85,benefits:'全场85折优惠、免费查看时政月度更新、免费获取全站资料、专属客服支持、优先体验新功能'}
   ];
   renderMemberCards(configs);
 }
@@ -142,39 +141,32 @@ function filterGoods() {
   renderGoods(filtered);
 }
 
-async function buy(goodsId) {
+function buy(goodsId) {
   if (!currentUser) {
     openLoginModal();
     return;
   }
-  
-  const res = await fetch(`${apiPrefix}/createorder`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ goodsId, userId: currentUser.id })
-  }).then(r => r.json());
-  if (res.code !== 0) return alert(res.msg);
-  tradeNo = res.data.tradeNo;
-  window.location.href = res.data.payUrl;
+  const goods = allGoods.find(g => g.id === goodsId);
+  if (!goods) return;
+  alert(`即将跳转到支付页面，购买：${goods.title} ¥${goods.price.toFixed(2)}\n\n开发中：实际支付功能将在后续版本开通`);
 }
 
-async function buyMember(level) {
+function buyMember(level) {
   if (!currentUser) {
     openLoginModal();
     return;
   }
-  
-  const res = await fetch(`${apiPrefix}/member/buy`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: currentUser.id, level })
-  }).then(r => r.json());
-  if (res.code !== 0) return alert(res.msg);
-  tradeNo = res.data.tradeNo;
-  window.location.href = res.data.payUrl;
+  const configs = [
+    {level:1,name:'普通会员',price:39.9,duration_days:90},
+    {level:2,name:'VIP会员',price:99,duration_days:365},
+    {level:3,name:'至尊会员',price:199,duration_days:3650}
+  ];
+  const config = configs.find(c => c.level === level);
+  if (!config) return;
+  alert(`即将跳转到支付页面，开通：${config.name} ¥${config.price}\n\n开发中：实际支付功能将在后续版本开通`);
 }
 
-window.onload = async () => {
+window.onload = () => {
   loadGoods();
   loadMemberConfig();
   loadMonthlyUpdates();
@@ -194,8 +186,6 @@ window.onload = async () => {
     if (!currentUser) setTimeout(() => openLoginModal(), 500);
   }
 };
-
-// ====== 月度时政更新 ======
 
 function loadMonthlyUpdates() {
   try {
@@ -219,7 +209,7 @@ function loadMonthlyUpdates() {
   }
 }
 
-async function viewMonthly(month) {
+function viewMonthly(month) {
   const modal = document.getElementById("monthlyModal");
   const title = document.getElementById("monthlyModalTitle");
   const body = document.getElementById("monthlyModalBody");
@@ -234,20 +224,8 @@ async function viewMonthly(month) {
     return;
   }
 
-  const res = await fetch(`${apiPrefix}/monthly-update/${month}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: currentUser.id })
-  }).then(r => r.json());
-
-  if (res.code !== 0 || !res.data) {
-    title.textContent = "查看失败";
-    body.innerHTML = `<p>${res.msg || "未找到该月时政内容"}</p>`;
-    return;
-  }
-
-  title.textContent = res.data.title;
-  body.innerHTML = res.data.content || "<p>暂无内容，请开通会员后查看完整时政汇总。</p>";
+  title.textContent = `2026年${month.split('-')[1]}月时政热点汇总`;
+  body.innerHTML = `<p>开发中：时政详情内容将在后续版本开通</p>`;
 }
 
 function closeMonthlyModal() {
@@ -282,7 +260,6 @@ function updateUserArea() {
   
   if (currentUser) {
     const memberInfo = currentUser.member || {};
-    const distInfo = currentUser.distributor || null;
     
     userArea.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px">
@@ -293,15 +270,9 @@ function updateUserArea() {
       </div>
     `;
     
-    if (distInfo) {
-      applyBtn.style.display = "none";
-      viewBtn.style.display = "inline-block";
-      loginBtn.style.display = "none";
-    } else {
-      applyBtn.style.display = "inline-block";
-      viewBtn.style.display = "none";
-      loginBtn.style.display = "none";
-    }
+    applyBtn.style.display = "inline-block";
+    viewBtn.style.display = "none";
+    loginBtn.style.display = "none";
   } else {
     userArea.innerHTML = `<button class="login-btn" onclick="openLoginModal()">登录 / 注册</button>`;
     applyBtn.style.display = "none";
@@ -330,61 +301,58 @@ function isValidPhone(phone) {
   return /^1[3-9]\d{9}$/.test(phone);
 }
 
-async function doLogin() {
+function doLogin() {
   const phone = document.getElementById("loginPhone").value;
   const password = document.getElementById("loginPassword").value;
   
   if (!phone || !password) return alert("请填写手机号和密码");
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
   
-  const res = await fetch(`${apiPrefix}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone, password })
-  }).then(r => r.json());
+  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
+  const user = users.find(u => u.phone === phone && u.password === password);
   
-  if (res.code !== 0) return alert(res.msg);
+  if (!user) return alert("手机号或密码错误");
   
-  currentUser = res.data;
+  currentUser = user;
   localStorage.setItem("gk_user", JSON.stringify(currentUser));
   updateUserArea();
   closeLoginModal();
   alert("登录成功");
 }
 
-async function doRegister() {
+function doRegister() {
   const phone = document.getElementById("regPhone").value;
   const password = document.getElementById("regPassword").value;
   const nickname = document.getElementById("regNickname").value;
-  const inviteCode = document.getElementById("regInviteCode").value;
   
   if (!phone || !password) return alert("请填写手机号和密码");
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
   if (password.length < 6) return alert("密码长度不能少于6位");
   
-  let referrerId = 0;
-  if (inviteCode) {
-    const checkRes = await fetch(`${apiPrefix}/referrer/check?code=${inviteCode}`).then(r => r.json());
-    if (checkRes.code === 0) {
-      referrerId = checkRes.data.userId;
-    } else {
-      return alert("邀请码无效");
-    }
-  }
+  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
+  const exist = users.find(u => u.phone === phone);
   
-  const res = await fetch(`${apiPrefix}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone, password, nickname, referrerId })
-  }).then(r => r.json());
+  if (exist) return alert("该手机号已注册");
   
-  if (res.code !== 0) return alert(res.msg);
+  const newUser = {
+    id: Date.now(),
+    phone: phone,
+    password: password,
+    nickname: nickname || phone,
+    avatar: "",
+    invite_code: "INV" + Math.random().toString(36).substr(2, 6).toUpperCase(),
+    referrer_id: 0,
+    member: { level: 0 }
+  };
+  
+  users.push(newUser);
+  localStorage.setItem("gk_users", JSON.stringify(users));
   
   alert("注册成功，请登录");
   switchLoginTab("login");
 }
 
-async function doResetPwd() {
+function doResetPwd() {
   const phone = document.getElementById("resetPhone").value;
   const newPassword = document.getElementById("resetPassword").value;
   
@@ -392,13 +360,13 @@ async function doResetPwd() {
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
   if (newPassword.length < 6) return alert("密码长度不能少于6位");
   
-  const res = await fetch(`${apiPrefix}/reset-pwd`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone, newPassword })
-  }).then(r => r.json());
+  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
+  const userIndex = users.findIndex(u => u.phone === phone);
   
-  if (res.code !== 0) return alert(res.msg);
+  if (userIndex === -1) return alert("该手机号未注册");
+  
+  users[userIndex].password = newPassword;
+  localStorage.setItem("gk_users", JSON.stringify(users));
   
   alert("密码重置成功，请登录");
   switchLoginTab("login");
@@ -411,149 +379,44 @@ function logout() {
   alert("已退出登录");
 }
 
-async function applyDistributor() {
-  if (!currentUser) return;
-  
-  const res = await fetch(`${apiPrefix}/distributor/apply`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: currentUser.id })
-  }).then(r => r.json());
-  
-  if (res.code !== 0) return alert(res.msg);
-  
-  if (res.data) {
-    currentUser.member = res.data.user ? { level: res.data.user.member_level } : currentUser.member;
-    currentUser.distributor = res.data.distributor;
-    localStorage.setItem("gk_user", JSON.stringify(currentUser));
+function applyDistributor() {
+  if (!currentUser) {
+    openLoginModal();
+    return;
   }
-  alert(res.msg);
-  updateUserArea();
+  alert("开发中：分销功能将在后续版本开通");
 }
 
-async function openDistModal() {
-  if (!currentUser) return;
-  
-  const [infoRes, ordersRes] = await Promise.all([
-    fetch(`${apiPrefix}/distributor/info`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({userId:currentUser.id}) }).then(r=>r.json()),
-    fetch(`${apiPrefix}/distributor/orders?userId=${currentUser.id}`).then(r=>r.json())
-  ]);
-  
-  if (infoRes.code !== 0) return alert(infoRes.msg);
-  
-  const data = infoRes.data;
-  document.getElementById("distStatus").textContent = data.status === 1 ? "已通过" : (data.status === 0 ? "审核中" : "已拒绝");
-  document.getElementById("distCode").textContent = data.invite_code || "-";
-  document.getElementById("distRate").textContent = (data.commission_rate * 100) + "%";
-  document.getElementById("distTotal").textContent = "¥" + data.total_commission.toFixed(2);
-  document.getElementById("distAvailable").textContent = "¥" + data.available_commission.toFixed(2);
-  document.getElementById("distReferral").textContent = data.referralCount || 0;
-  
-  const inviteLink = data.invite_code ? `${location.origin}/?invite=${data.invite_code}` : "-";
-  document.getElementById("distLink").textContent = inviteLink;
-  document.getElementById("distLink").title = "点击复制";
-  
-  // 订单列表
-  const ordersBody = document.getElementById("distOrders");
-  if (ordersRes.data && ordersRes.data.length > 0) {
-    ordersBody.innerHTML = `<div style="font-size:13px;color:#718096;padding:8px 0">最近订单</div>` + ordersRes.data.slice(0,10).map(o => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid #F7FAFC">
-        <span style="color:#4A5568">${o.user_phone || "用户"}</span>
-        <span style="color:#718096;font-size:12px">¥${o.pay_amount?.toFixed(2) || "0.00"}</span>
-        <span style="color:#279E66">¥${o.commission_amount.toFixed(2)}</span>
-      </div>
-    `).join("");
-  } else {
-    ordersBody.innerHTML = `<div style="text-align:center;color:#A0AEC0;padding:12px 0;font-size:13px">暂无分销订单</div>`;
+function openDistModal() {
+  if (!currentUser) {
+    openLoginModal();
+    return;
   }
-  
-  document.getElementById("distWithdraw").style.display = data.status === 1 && data.available_commission >= 50 ? "block" : "none";
-  document.getElementById("distModal").classList.add("show");
-}
-
-function copyDistLink() {
-  const text = document.getElementById("distLink").textContent;
-  if (!text || text === "-") return;
-  navigator.clipboard.writeText(text).then(() => alert("链接已复制，可直接分享给好友"));
+  alert("开发中：分销中心将在后续版本开通");
 }
 
 function closeDistModal() {
   document.getElementById("distModal").classList.remove("show");
 }
 
-async function doWithdraw() {
-  const amount = parseFloat(document.getElementById("withdrawAmount").value);
-  
-  if (!amount || amount < 50) return alert("最低提现金额为50元");
-  
-  const res = await fetch(`${apiPrefix}/distributor/withdraw`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: currentUser.id, amount })
-  }).then(r => r.json());
-  
-  if (res.code !== 0) return alert(res.msg);
-  
-  alert(res.msg);
-  document.getElementById("withdrawAmount").value = "";
-  openDistModal();
-}
-
-async function showMyOrders() {
+function showMyOrders() {
   const modal = document.getElementById("ordersModal");
   const body = document.getElementById("ordersBody");
   modal.classList.add("show");
-  body.innerHTML = "<p style='text-align:center;color:#A0AEC0'>加载中...</p>";
-
-  const res = await fetch(`${apiPrefix}/myorders?userId=${currentUser.id}`).then(r => r.json());
-  if (res.code !== 0 || !res.data || res.data.length === 0) {
-    body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>暂无订单</p>";
-    return;
-  }
-
-  body.innerHTML = res.data.map(o => `
-    <div class="order-row" onclick="showOrder('${o.trade_id}')" style="cursor:pointer;padding:12px;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-weight:600;font-size:14px">${o.goods_title || "商品"}</div>
-        <div style="font-size:12px;color:#718096;margin-top:4px">¥${o.pay_amount.toFixed(2)}</div>
-        <div style="font-size:11px;color:#A0AEC0;margin-top:2px">${o.create_at}</div>
-      </div>
-      <span style="font-size:13px;padding:2px 10px;border-radius:10px;${o.status===1?'background:#C6F6D5;color:#22543D':'background:#FEEBC8;color:#744210'}">${o.status===1?'已支付':'未支付'}</span>
-    </div>
-  `).join("");
+  body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>暂无订单</p>";
 }
 
 function closeOrdersModal() {
   document.getElementById("ordersModal").classList.remove("show");
 }
 
-async function showOrder(tid) {
-  const res = await fetch(`${apiPrefix}/order/${tid}`).then(r => r.json());
+function showOrder(tid) {
   const modal = document.getElementById("orderModal");
   const body = document.getElementById("orderBody");
   const copyBtn = document.getElementById("copyBtn");
   copyBtn.style.display = "none";
 
-  if (!res.data) {
-    body.innerHTML = "<p>❌ 未查询到该订单，请核对订单编号</p>";
-  } else if (res.data.status === 0) {
-    body.innerHTML = `
-      <p>⏳ 订单已创建，等待付款</p>
-      <p style="margin-top:8px">完成支付后刷新本页面即可自动获取资料</p>
-    `;
-  } else {
-    currentPanLink = res.data.pan_link;
-    currentPanCode = res.data.pan_code;
-    body.innerHTML = `
-      <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
-      <p style="margin-top:12px"><strong>商品名称：</strong>${res.data.goods_title || "会员开通"}</p>
-      <p style="margin-top:8px"><strong>支付金额：</strong>¥${res.data.pay_amount.toFixed(2)}</p>
-      ${res.data.pan_link ? `<p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>` : ""}
-      ${res.data.pan_code ? `<p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>` : ""}
-      <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
-    `;
-    if (res.data.pan_link) copyBtn.style.display = "block";
-  }
+  body.innerHTML = "<p>❌ 未查询到该订单，请核对订单编号</p>";
   modal.classList.add("show");
 }
 
@@ -570,7 +433,7 @@ function closeQueryModal() {
   document.getElementById("queryModal").classList.remove("show");
 }
 
-async function manualQuery() {
+function manualQuery() {
   const tid = document.getElementById("tidInput").value.trim();
   if (!tid) return alert("请输入订单编号");
   closeQueryModal();
