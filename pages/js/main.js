@@ -141,29 +141,44 @@ function filterGoods() {
   renderGoods(filtered);
 }
 
-function buy(goodsId) {
+const apiPrefix = "https://gk-api.13365616616.workers.dev/api";
+
+async function buy(goodsId) {
   if (!currentUser) {
     openLoginModal();
     return;
   }
-  const goods = allGoods.find(g => g.id === goodsId);
-  if (!goods) return;
-  alert(`即将跳转到支付页面，购买：${goods.title} ¥${goods.price.toFixed(2)}\n\n开发中：实际支付功能将在后续版本开通`);
+  try {
+    const res = await fetch(`${apiPrefix}/createorder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goodsId, userId: currentUser.id })
+    }).then(r => r.json());
+    if (res.code !== 0) return alert(res.msg);
+    tradeNo = res.data.tradeNo;
+    window.location.href = res.data.payUrl;
+  } catch(e) {
+    alert("创建订单失败：" + e.message);
+  }
 }
 
-function buyMember(level) {
+async function buyMember(level) {
   if (!currentUser) {
     openLoginModal();
     return;
   }
-  const configs = [
-    {level:1,name:'普通会员',price:39.9,duration_days:90},
-    {level:2,name:'VIP会员',price:99,duration_days:365},
-    {level:3,name:'至尊会员',price:199,duration_days:3650}
-  ];
-  const config = configs.find(c => c.level === level);
-  if (!config) return;
-  alert(`即将跳转到支付页面，开通：${config.name} ¥${config.price}\n\n开发中：实际支付功能将在后续版本开通`);
+  try {
+    const res = await fetch(`${apiPrefix}/member/buy`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.id, level })
+    }).then(r => r.json());
+    if (res.code !== 0) return alert(res.msg);
+    tradeNo = res.data.tradeNo;
+    window.location.href = res.data.payUrl;
+  } catch(e) {
+    alert("创建会员订单失败：" + e.message);
+  }
 }
 
 window.onload = () => {
