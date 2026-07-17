@@ -18,6 +18,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy --project-name gk-minicode-pages
+        run: |
+          cd /home/runner/work/gk-minicode/gk-minicode
+          npx wrangler pages deploy --project-name gk-minicode-pages --branch main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
