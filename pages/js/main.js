@@ -141,108 +141,7 @@ function filterGoods() {
   renderGoods(filtered);
 }
 
-const HUPIJIA_APP_ID = "201906179658";
-const HUPIJIA_APP_SECRET = "d41d8cd98f00b204e9800998ecf8427e";
-const HUPIJIA_API_URL = "https://api.xunhupay.com/payment/do.html";
-const SITE_DOMAIN = "https://gk.minicode.cloud";
-
-function md5(str) {
-  const table = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476];
-  const s = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
-             5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
-             4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
-             6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
-  const k = [];
-  for (let i = 0; i < 64; i++) k[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000);
-  
-  function rotateLeft(value, shift) { return (value << shift) | (value >>> (32 - shift)); }
-  
-  const padding = str + String.fromCharCode(0x80);
-  while ((padding.length % 64) !== 56) padding += String.fromCharCode(0);
-  const bitLen = str.length * 8;
-  padding += String.fromCharCode(bitLen & 0xFF, (bitLen >>> 8) & 0xFF, (bitLen >>> 16) & 0xFF, (bitLen >>> 24) & 0xFF);
-  padding += String.fromCharCode(0, 0, 0, 0, 0, 0, 0, 0);
-  
-  let a = table[0], b = table[1], c = table[2], d = table[3];
-  
-  for (let i = 0; i < padding.length; i += 64) {
-    const chunks = [];
-    for (let j = 0; j < 16; j++) {
-      chunks[j] = padding.charCodeAt(i + j * 4) | (padding.charCodeAt(i + j * 4 + 1) << 8) |
-                  (padding.charCodeAt(i + j * 4 + 2) << 16) | (padding.charCodeAt(i + j * 4 + 3) << 24);
-    }
-    
-    let AA = a, BB = b, CC = c, DD = d;
-    
-    for (let j = 0; j < 64; j++) {
-      let f, g;
-      if (j < 16) { f = (b & c) | (~b & d); g = j; }
-      else if (j < 32) { f = (d & b) | (~d & c); g = (5 * j + 1) % 16; }
-      else if (j < 48) { f = b ^ c ^ d; g = (3 * j + 5) % 16; }
-      else { f = c ^ (b | ~d); g = (7 * j) % 16; }
-      
-      const temp = d;
-      d = c;
-      c = b;
-      b = (b + rotateLeft(a + f + k[j] + chunks[g], s[j])) >>> 0;
-      a = temp;
-    }
-    
-    a = (a + AA) >>> 0;
-    b = (b + BB) >>> 0;
-    c = (c + CC) >>> 0;
-    d = (d + DD) >>> 0;
-  }
-  
-  const toHex = (n) => {
-    let str = n.toString(16);
-    while (str.length < 8) str = '0' + str;
-    return str;
-  };
-  
-  return (toHex(a) + toHex(b) + toHex(c) + toHex(d)).toLowerCase();
-}
-
-function generateHash(params, secret) {
-  const sorted = Object.keys(params).filter(k => params[k]).sort();
-  let signStr = '';
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0) signStr += '&';
-    signStr += sorted[i] + '=' + params[sorted[i]];
-  }
-  return md5(signStr + secret);
-}
-
-async function createPaymentOrder(params) {
-  const baseParams = {
-    version: '1.1',
-    appid: HUPIJIA_APP_ID,
-    trade_order_id: params.tradeNo,
-    total_fee: params.amount.toFixed(2),
-    title: params.title,
-    time: Math.floor(Date.now() / 1000).toString(),
-    notify_url: `${SITE_DOMAIN}/api/callback`,
-    nonce_str: Math.random().toString(36).substring(2, 14),
-    type: 'WAP',
-    wap_url: SITE_DOMAIN,
-    wap_name: '国考资料工具'
-  };
-  
-  if (params.attach) baseParams.attach = params.attach;
-  
-  baseParams.hash = generateHash(baseParams, HUPIJIA_APP_SECRET);
-  
-  try {
-    const res = await fetch(HUPIJIA_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(baseParams)
-    });
-    return await res.json();
-  } catch(e) {
-    throw new Error("支付接口调用失败:" + e.message);
-  }
-}
+const apiPrefix = "https://api.minicode.cloud";
 
 async function buy(goodsId) {
   if (!currentUser) {
@@ -258,22 +157,17 @@ async function buy(goodsId) {
   loadingModal.classList.add("show");
   
   try {
-    const tradeNo = "GK" + Date.now() + Math.floor(Math.random() * 1000);
-    
-    const result = await createPaymentOrder({
-      tradeNo,
-      amount: goods.price,
-      title: goods.title,
-      attach: `GOODS_${goodsId}`
-    });
+    const res = await fetch(`${apiPrefix}/createorder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goodsId, userId: currentUser.id })
+    }).then(r => r.json());
     
     loadingModal.classList.remove("show");
     
-    if (result.errcode !== 0 && result.errcode !== undefined) {
-      return alert(result.errmsg || '创建支付订单失败');
-    }
+    if (res.code !== 0) return alert(res.msg);
     
-    tradeNo = tradeNo;
+    tradeNo = res.data.tradeNo;
     
     const payModal = document.getElementById("payModal");
     const payBody = document.getElementById("payBody");
@@ -282,10 +176,10 @@ async function buy(goodsId) {
     payBody.innerHTML = `
       <p style="font-size:16px;font-weight:600;margin-bottom:16px">微信扫码支付</p>
       <p><strong>商品名称：</strong>${goods.title}</p>
-      <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${goods.price.toFixed(2)}</span></p>
+      <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${res.data.finalPrice.toFixed(2)}</span></p>
       <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
       <div style="margin-top:16px;text-align:center">
-        <img src="${result.url_qrcode}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
+        <img src="${res.data.payUrl}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
         <p style="margin-top:8px;color:#718096;font-size:13px">请使用微信扫码支付</p>
       </div>
     `;
@@ -304,25 +198,14 @@ async function buy(goodsId) {
     
     const checkPay = async () => {
       try {
-        const queryRes = await fetch(`https://api.xunhupay.com/payment/query.html`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            version: '1.1',
-            appid: HUPIJIA_APP_ID,
-            trade_order_id: tradeNo,
-            time: Math.floor(Date.now() / 1000).toString(),
-            nonce_str: Math.random().toString(36).substring(2, 14)
-          })
-        });
-        const queryResult = await queryRes.json();
-        
-        if (queryResult.errcode === 0 && queryResult.status === 'OD') {
+        const orderRes = await fetch(`${apiPrefix}/order/${tradeNo}`).then(r => r.json());
+        if (orderRes.code === 0 && orderRes.data && orderRes.data.status === 1) {
           paid = true;
           payModal.classList.remove("show");
           
-          currentPanLink = "https://pan.baidu.com/s/1234567890abcdef";
-          currentPanCode = "gk" + goodsId;
+          const order = orderRes.data;
+          currentPanLink = order.pan_link || "https://pan.baidu.com/s/1234567890abcdef";
+          currentPanCode = order.pan_code || "gk" + goodsId;
           
           const successModal = document.getElementById("orderModal");
           const body = document.getElementById("orderBody");
@@ -331,7 +214,7 @@ async function buy(goodsId) {
           body.innerHTML = `
             <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
             <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
-            <p style="margin-top:8px"><strong>支付金额：</strong>¥${goods.price.toFixed(2)}</p>
+            <p style="margin-top:8px"><strong>支付金额：</strong>¥${order.pay_amount.toFixed(2)}</p>
             <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
             <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
             <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
@@ -376,20 +259,17 @@ async function buyMember(level) {
   loadingModal.classList.add("show");
   
   try {
-    const tradeNo = "VIP" + Date.now() + Math.floor(Math.random() * 1000);
-    
-    const result = await createPaymentOrder({
-      tradeNo,
-      amount: config.price,
-      title: `${config.name}开通`,
-      attach: `VIP_${level}`
-    });
+    const res = await fetch(`${apiPrefix}/member/buy`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.id, level })
+    }).then(r => r.json());
     
     loadingModal.classList.remove("show");
     
-    if (result.errcode !== 0 && result.errcode !== undefined) {
-      return alert(result.errmsg || '创建支付订单失败');
-    }
+    if (res.code !== 0) return alert(res.msg);
+    
+    tradeNo = res.data.tradeNo;
     
     const payModal = document.getElementById("payModal");
     const payBody = document.getElementById("payBody");
@@ -398,11 +278,11 @@ async function buyMember(level) {
     payBody.innerHTML = `
       <p style="font-size:16px;font-weight:600;margin-bottom:16px">微信扫码支付</p>
       <p><strong>会员等级：</strong>${config.name}</p>
-      <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${config.price}</span></p>
+      <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${res.data.price}</span></p>
       <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
       <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
       <div style="margin-top:16px;text-align:center">
-        <img src="${result.url_qrcode}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
+        <img src="${res.data.payUrl}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
         <p style="margin-top:8px;color:#718096;font-size:13px">请使用微信扫码支付</p>
       </div>
     `;
@@ -421,20 +301,8 @@ async function buyMember(level) {
     
     const checkPay = async () => {
       try {
-        const queryRes = await fetch(`https://api.xunhupay.com/payment/query.html`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            version: '1.1',
-            appid: HUPIJIA_APP_ID,
-            trade_order_id: tradeNo,
-            time: Math.floor(Date.now() / 1000).toString(),
-            nonce_str: Math.random().toString(36).substring(2, 14)
-          })
-        });
-        const queryResult = await queryRes.json();
-        
-        if (queryResult.errcode === 0 && queryResult.status === 'OD') {
+        const orderRes = await fetch(`${apiPrefix}/order/${tradeNo}`).then(r => r.json());
+        if (orderRes.code === 0 && orderRes.data && orderRes.data.status === 1) {
           paid = true;
           payModal.classList.remove("show");
           
@@ -449,7 +317,7 @@ async function buyMember(level) {
           body.innerHTML = `
             <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
             <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
-            <p style="margin-top:8px"><strong>支付金额：</strong>¥${config.price}</p>
+            <p style="margin-top:8px"><strong>支付金额：</strong>¥${res.data.price}</p>
             <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
             <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场优惠</p>
           `;
