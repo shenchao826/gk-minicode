@@ -149,16 +149,25 @@ async function buy(goodsId) {
   const goods = allGoods.find(g => g.id === goodsId);
   if (!goods) return;
   
-  const confirmBuy = confirm(`确认购买：${goods.title}\n价格：¥${goods.price.toFixed(2)}\n\n支付方式：虎皮椒聚合支付`);
-  if (!confirmBuy) return;
-  
   const tradeNo = "GK" + Date.now();
   
-  alert(`订单已创建：${tradeNo}\n\n即将跳转到支付页面...`);
+  currentPanLink = "https://pan.baidu.com/s/1234567890abcdef";
+  currentPanCode = "gk" + goodsId;
   
-  setTimeout(() => {
-    alert(`支付成功！\n订单号：${tradeNo}\n商品：${goods.title}\n金额：¥${goods.price.toFixed(2)}\n\n开发中：实际支付后将自动跳转到订单详情页面获取资料`);
-  }, 1000);
+  const modal = document.getElementById("orderModal");
+  const body = document.getElementById("orderBody");
+  const copyBtn = document.getElementById("copyBtn");
+  
+  body.innerHTML = `
+    <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
+    <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
+    <p style="margin-top:8px"><strong>支付金额：</strong>¥${goods.price.toFixed(2)}</p>
+    <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
+    <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
+    <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
+  `;
+  copyBtn.style.display = "block";
+  modal.classList.add("show");
 }
 
 async function buyMember(level) {
@@ -174,16 +183,25 @@ async function buyMember(level) {
   const config = configs.find(c => c.level === level);
   if (!config) return;
   
-  const confirmBuy = confirm(`确认开通：${config.name}\n价格：¥${config.price}\n有效期：${config.duration_days}天\n\n支付方式：虎皮椒聚合支付`);
-  if (!confirmBuy) return;
-  
   const tradeNo = "VIP" + Date.now();
   
-  alert(`订单已创建：${tradeNo}\n\n即将跳转到支付页面...`);
+  currentUser.member = { level: level };
+  localStorage.setItem("gk_user", JSON.stringify(currentUser));
+  updateUserArea();
   
-  setTimeout(() => {
-    alert(`支付成功！\n订单号：${tradeNo}\n会员等级：${config.name}\n金额：¥${config.price}\n有效期：${config.duration_days}天\n\n开发中：实际支付后将自动开通会员权益`);
-  }, 1000);
+  const modal = document.getElementById("orderModal");
+  const body = document.getElementById("orderBody");
+  const copyBtn = document.getElementById("copyBtn");
+  
+  body.innerHTML = `
+    <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
+    <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
+    <p style="margin-top:8px"><strong>支付金额：</strong>¥${config.price}</p>
+    <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
+    <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场${(config.price/99*100).toFixed(0)}折优惠</p>
+  `;
+  copyBtn.style.display = "none";
+  modal.classList.add("show");
 }
 
 window.onload = () => {
