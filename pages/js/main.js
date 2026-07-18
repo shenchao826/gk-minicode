@@ -4,6 +4,12 @@ let currentPanCode = "";
 let allGoods = [];
 let currentCategory = "all";
 let currentUser = null;
+let payInterval = null;
+
+function closePayModal() {
+  document.getElementById('payModal').classList.remove('show');
+  if (payInterval) { clearInterval(payInterval); payInterval = null; }
+}
 
 const tagMap = {
   1: "tag-new",
@@ -156,11 +162,11 @@ async function buy(goodsId) {
   loadingText.textContent = "正在创建支付订单...";
   loadingModal.classList.add("show");
   
-  try {
+try {
     const res = await fetch(`${apiPrefix}/createorder`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goodsId, userId: currentUser.id })
+      body: JSON.stringify({ goodsId, userId: currentUser.id, referrerId: currentUser.referrer_id || 0 })
     }).then(r => r.json());
     
     loadingModal.classList.remove("show");
@@ -235,12 +241,12 @@ async function buy(goodsId) {
       if (!ok) alert("暂未检测到支付，请确认已扫码完成支付");
     };
     
-    const interval = setInterval(async () => {
+    payInterval = setInterval(async () => {
       const success = await checkPay();
-      if (success) clearInterval(interval);
+      if (success) { clearInterval(payInterval); payInterval = null; }
     }, 3000);
     
-    setTimeout(() => clearInterval(interval), 120000);
+    setTimeout(() => { if (payInterval) { clearInterval(payInterval); payInterval = null; } }, 120000);
     
   } catch(e) {
     loadingModal.classList.remove("show");
@@ -266,11 +272,11 @@ async function buyMember(level) {
   loadingText.textContent = "正在创建支付订单...";
   loadingModal.classList.add("show");
   
-  try {
+try {
     const res = await fetch(`${apiPrefix}/member/buy`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: currentUser.id, level })
+      body: JSON.stringify({ userId: currentUser.id, level, referrerId: currentUser.referrer_id || 0 })
     }).then(r => r.json());
     
     loadingModal.classList.remove("show");
@@ -345,12 +351,12 @@ async function buyMember(level) {
       if (!ok) alert("暂未检测到支付，请确认已扫码完成支付");
     };
     
-    const interval = setInterval(async () => {
+    payInterval = setInterval(async () => {
       const success = await checkPay();
-      if (success) clearInterval(interval);
+      if (success) { clearInterval(payInterval); payInterval = null; }
     }, 3000);
     
-    setTimeout(() => clearInterval(interval), 120000);
+    setTimeout(() => { if (payInterval) { clearInterval(payInterval); payInterval = null; } }, 120000);
     
   } catch(e) {
     loadingModal.classList.remove("show");
@@ -462,9 +468,22 @@ function updateUserArea() {
       </div>
     `;
     
-    applyBtn.style.display = "inline-block";
-    viewBtn.style.display = "none";
-    loginBtn.style.display = "none";
+    // 检查分销员状态
+    fetch(`${apiPrefix}/distributor/info?userId=${currentUser.id}`).then(r => r.json()).then(res => {
+      if (res.code === 0) {
+        applyBtn.style.display = "none";
+        viewBtn.style.display = "inline-block";
+        loginBtn.style.display = "none";
+      } else {
+        applyBtn.style.display = "inline-block";
+        viewBtn.style.display = "none";
+        loginBtn.style.display = "none";
+      }
+    }).catch(() => {
+      applyBtn.style.display = "inline-block";
+      viewBtn.style.display = "none";
+      loginBtn.style.display = "none";
+    });
   } else {
     userArea.innerHTML = `<button class="login-btn" onclick="openLoginModal()">登录 / 注册</button>`;
     applyBtn.style.display = "none";
@@ -496,72 +515,119 @@ function isValidPhone(phone) {
 function doLogin() {
   const phone = document.getElementById("loginPhone").value;
   const password = document.getElementById("loginPassword").value;
-  
+
   if (!phone || !password) return alert("请填写手机号和密码");
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
-  
-  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
-  const user = users.find(u => u.phone === phone && u.password === password);
-  
-  if (!user) return alert("手机号或密码错误");
-  
-  currentUser = user;
-  localStorage.setItem("gk_user", JSON.stringify(currentUser));
-  updateUserArea();
-  closeLoginModal();
-  alert("登录成功");
+
+  const loadingModal = document.getElementById("loadingModal");
+  const loadingText = document.getElementById("loadingText");
+  loadingText.textContent = "正在登录...";
+  loadingModal.classList.add("show");
+
+  fetch(`${apiPrefix}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password })
+  }).then(r => r.json()).then(res => {
+    loadingModal.classList.remove("show");
+    if (res.code === 0) {
+      currentUser = res.data;
+      localStorage.setItem("gk_user", JSON.stringify(currentUser));
+      updateUserArea();
+      closeLoginModal();
+      alert("登录成功");
+    } else {
+      alert(res.msg);
+    }
+  }).catch(e => {
+    loadingModal.classList.remove("show");
+    alert("登录失败：" + e.message);
+  });
 }
 
 function doRegister() {
   const phone = document.getElementById("regPhone").value;
   const password = document.getElementById("regPassword").value;
   const nickname = document.getElementById("regNickname").value;
-  
+  const inviteCode = document.getElementById("regInviteCode").value.trim();
+
   if (!phone || !password) return alert("请填写手机号和密码");
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
   if (password.length < 6) return alert("密码长度不能少于6位");
-  
-  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
-  const exist = users.find(u => u.phone === phone);
-  
-  if (exist) return alert("该手机号已注册");
-  
-  const newUser = {
-    id: Date.now(),
-    phone: phone,
-    password: password,
-    nickname: nickname || phone,
-    avatar: "",
-    invite_code: "INV" + Math.random().toString(36).substr(2, 6).toUpperCase(),
-    referrer_id: 0,
-    member: { level: 0 }
-  };
-  
-  users.push(newUser);
-  localStorage.setItem("gk_users", JSON.stringify(users));
-  
-  alert("注册成功，请登录");
-  switchLoginTab("login");
+
+  const loadingModal = document.getElementById("loadingModal");
+  const loadingText = document.getElementById("loadingText");
+  loadingText.textContent = "正在注册...";
+  loadingModal.classList.add("show");
+
+  let referrerId = 0;
+  if (inviteCode) {
+    // 先验证邀请码
+    fetch(`${apiPrefix}/referrer/check?code=${encodeURIComponent(inviteCode)}`).then(r => r.json()).then(res => {
+      if (res.code === 0) {
+        referrerId = res.data.userId;
+        submitRegister(phone, password, nickname, referrerId);
+      } else {
+        loadingModal.classList.remove("show");
+        alert("邀请码无效或分销员状态异常");
+      }
+    }).catch(() => {
+      loadingModal.classList.remove("show");
+      alert("验证邀请码失败");
+    });
+  } else {
+    submitRegister(phone, password, nickname, 0);
+  }
+}
+
+function submitRegister(phone, password, nickname, referrerId) {
+  fetch(`${apiPrefix}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password, nickname, referrerId })
+  }).then(r => r.json()).then(res => {
+    loadingModal.classList.remove("show");
+    if (res.code === 0) {
+      alert("注册成功，请登录");
+      switchLoginTab("login");
+    } else {
+      alert(res.msg);
+    }
+  }).catch(e => {
+    loadingModal.classList.remove("show");
+    alert("注册失败：" + e.message);
+  });
 }
 
 function doResetPwd() {
   const phone = document.getElementById("resetPhone").value;
   const newPassword = document.getElementById("resetPassword").value;
-  
+
   if (!phone || !newPassword) return alert("请填写手机号和新密码");
   if (!isValidPhone(phone)) return alert("请输入正确的手机号");
   if (newPassword.length < 6) return alert("密码长度不能少于6位");
-  
-  const users = JSON.parse(localStorage.getItem("gk_users") || "[]");
-  const userIndex = users.findIndex(u => u.phone === phone);
-  
-  if (userIndex === -1) return alert("该手机号未注册");
-  
-  users[userIndex].password = newPassword;
-  localStorage.setItem("gk_users", JSON.stringify(users));
-  
-  alert("密码重置成功，请登录");
-  switchLoginTab("login");
+
+  const loadingModal = document.getElementById("loadingModal");
+  const loadingText = document.getElementById("loadingText");
+  loadingText.textContent = "正在重置密码...";
+  loadingModal.classList.add("show");
+
+  fetch(`${apiPrefix}/reset-pwd`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, newPassword })
+  }).then(r => r.json()).then(res => {
+    loadingModal.classList.remove("show");
+    if (res.code === 0) {
+      alert("密码重置成功，请登录");
+      switchLoginTab("login");
+    } else {
+      alert(res.msg);
+    }
+  }).catch(e => {
+    loadingModal.classList.remove("show");
+    alert("重置失败：" + e.message);
+  });
 }
 
 function logout() {
@@ -576,7 +642,28 @@ function applyDistributor() {
     openLoginModal();
     return;
   }
-  alert("开发中：分销功能将在后续版本开通");
+  const loadingModal = document.getElementById("loadingModal");
+  const loadingText = document.getElementById("loadingText");
+  loadingText.textContent = "正在申请分销员...";
+  loadingModal.classList.add("show");
+
+  fetch(`${apiPrefix}/distributor/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: currentUser.id })
+  }).then(r => r.json()).then(res => {
+    loadingModal.classList.remove("show");
+    if (res.code === 0) {
+      alert("申请成功！您已成为分销员");
+      updateUserArea();
+      openDistModal();
+    } else {
+      alert(res.msg);
+    }
+  }).catch(e => {
+    loadingModal.classList.remove("show");
+    alert("申请失败：" + e.message);
+  });
 }
 
 function openDistModal() {
@@ -584,11 +671,108 @@ function openDistModal() {
     openLoginModal();
     return;
   }
-  alert("开发中：分销中心将在后续版本开通");
+  const modal = document.getElementById("distModal");
+  const infoDiv = document.getElementById("distInfo");
+  const ordersDiv = document.getElementById("distOrders");
+  const withdrawDiv = document.getElementById("distWithdraw");
+  
+  infoDiv.innerHTML = "<p style='text-align:center;color:#A0AEC0'>加载中...</p>";
+  ordersDiv.innerHTML = "";
+  withdrawDiv.style.display = "none";
+  modal.classList.add("show");
+
+  fetch(`${apiPrefix}/distributor/info?userId=${currentUser.id}`).then(r => r.json()).then(res => {
+    if (res.code !== 0) {
+      infoDiv.innerHTML = `<p style='text-align:center;color:#E53E3E'>${res.msg}</p>`;
+      document.getElementById("applyDistBtn").style.display = "inline-block";
+      document.getElementById("viewDistBtn").style.display = "none";
+      return;
+    }
+    const d = res.data;
+    const siteDomain = location.origin;
+    const shareLink = `${siteDomain}/?invite=${d.invite_code}`;
+    
+    infoDiv.innerHTML = `
+      <div class="dist-row"><span>分销状态：</span><span id="distStatus">${d.status === 1 ? '✅ 已通过' : (d.status === 0 ? '⏳ 审核中' : '❌ 已拒绝')}</span></div>
+      <div class="dist-row"><span>专属邀请码：</span><span id="distCode">${d.invite_code}</span></div>
+      <div class="dist-row"><span>佣金比例：</span><span id="distRate">${(d.commission_rate * 100).toFixed(0)}%</span></div>
+      <div class="dist-row"><span>累计佣金：</span><span id="distTotal">¥${d.total_commission.toFixed(2)}</span></div>
+      <div class="dist-row"><span>可提现余额：</span><span id="distAvailable">¥${d.available_commission.toFixed(2)}</span></div>
+      <div class="dist-row"><span>邀请人数：</span><span id="distReferral">${d.referralCount}</span></div>
+      <div class="dist-row"><span>专属分享链接：</span><span id="distLink" style="font-size:12px;word-break:break-all;cursor:pointer;color:#163D8C" onclick="copyDistLink('${shareLink}')">${shareLink}</span></div>
+    `;
+    
+    if (d.recentOrders && d.recentOrders.length > 0) {
+      ordersDiv.style.display = "block";
+      ordersDiv.innerHTML = d.recentOrders.map(o => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #EDF2F0">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${o.goods_title || '资料'}</div>
+            <div style="font-size:11px;color:#718096;margin-top:2px">订单：${o.order_id}</div>
+            <div style="font-size:11px;color:#718096">用户：${o.user_phone || '-'}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;color:#279E66">¥${o.commission_amount.toFixed(2)}</div>
+            <div style="font-size:11px;color:#718096">${o.status === 1 ? '已结算' : '待结算'}</div>
+          </div>
+        </div>
+      `).join("");
+    } else {
+      ordersDiv.style.display = "none";
+    }
+    
+    if (d.available_commission >= 10) {
+      withdrawDiv.style.display = "block";
+    }
+  }).catch(e => {
+    infoDiv.innerHTML = `<p style='text-align:center;color:#E53E3E'>加载失败：${e.message}</p>`;
+  });
 }
 
 function closeDistModal() {
   document.getElementById("distModal").classList.remove("show");
+}
+
+function copyDistLink(link) {
+  navigator.clipboard.writeText(link).then(() => {
+    alert("分享链接已复制到剪贴板");
+  }).catch(() => {
+    alert("复制失败，请手动复制");
+  });
+}
+
+function doWithdraw() {
+  if (!currentUser) {
+    openLoginModal();
+    return;
+  }
+  const amount = document.getElementById("withdrawAmount").value;
+  if (!amount || Number(amount) < 50) {
+    return alert("请输入至少50元的提现金额");
+  }
+  
+  const loadingModal = document.getElementById("loadingModal");
+  const loadingText = document.getElementById("loadingText");
+  loadingText.textContent = "正在提交提现申请...";
+  loadingModal.classList.add("show");
+  
+  fetch(`${apiPrefix}/distributor/withdraw`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: currentUser.id, amount: Number(amount) })
+  }).then(r => r.json()).then(res => {
+    loadingModal.classList.remove("show");
+    if (res.code === 0) {
+      alert("提现申请已提交");
+      document.getElementById("withdrawAmount").value = "";
+      openDistModal(); // 刷新
+    } else {
+      alert(res.msg);
+    }
+  }).catch(e => {
+    loadingModal.classList.remove("show");
+    alert("提交失败：" + e.message);
+  });
 }
 
 function showMyOrders() {

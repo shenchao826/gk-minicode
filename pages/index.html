@@ -116,12 +116,15 @@
     </div>
   </div>
 
-  <div class="modal" id="payModal">
+  <div class="modal" id="payModal" onclick="if(event.target===this)closePayModal()">
     <div class="modal-box">
-      <h2>确认支付</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="margin-bottom:0">确认支付</h2>
+        <button style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;line-height:1" onclick="closePayModal()">×</button>
+      </div>
       <div class="modal-body" id="payBody"></div>
       <button class="buy-btn" id="payConfirmBtn" style="width:100%">确认支付</button>
-      <button class="btn-close" onclick="document.getElementById('payModal').classList.remove('show')">取消</button>
+      <button class="btn-close" onclick="closePayModal()">关闭</button>
     </div>
   </div>
 

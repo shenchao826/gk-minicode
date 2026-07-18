@@ -419,6 +419,7 @@ export default {
       const body = await request.json();
       const userId = Number(body.userId);
       const level = Number(body.level);
+      const referrerId = Number(body.referrerId) || 0;
 
       if (!userId || !level) return json({code:-1,msg:"参数错误"});
 
@@ -426,8 +427,8 @@ export default {
       if (!config) return json({code:-1,msg:"会员等级不存在"});
 
       const outTradeNo = "VIP" + Date.now() + Math.floor(Math.random()*1000);
-      await env.DB.prepare("INSERT INTO orders (trade_id,goods_id,user_id,pay_amount) VALUES (?,?,?,?)")
-        .bind(outTradeNo, 0, userId, config.price).run();
+      await env.DB.prepare("INSERT INTO orders (trade_id,goods_id,user_id,referrer_id,pay_amount) VALUES (?,?,?,?,?)")
+        .bind(outTradeNo, 0, userId, referrerId, config.price).run();
 
       const notifyUrl = `${siteDomain}/api/callback`;
       
@@ -501,14 +502,14 @@ export default {
 
       const inviteCode = await generateInviteCode(env);
       await env.DB.prepare("INSERT INTO distributors (user_id,status,commission_rate,invite_code) VALUES (?,?,?,?)")
-        .bind(userId, 0, 0.15, inviteCode).run();
+        .bind(userId, 1, 0.15, inviteCode).run();
 
-      return json({code:0,msg:"申请已提交，等待审核"});
+      return json({code:0,msg:"申请成功，已自动通过"});
     }
 
-    if (path === "/api/distributor/info" && request.method === "POST") {
-      const body = await request.json();
-      const userId = Number(body.userId);
+    if (path === "/api/distributor/info") {
+      const params = new URLSearchParams(url.search);
+      const userId = params.get("userId");
       if (!userId) return json({code:-1,msg:"参数错误"});
 
       const distributor = await env.DB.prepare("SELECT * FROM distributors WHERE user_id=?").bind(userId).first();
@@ -516,13 +517,24 @@ export default {
 
       const referralCount = await env.DB.prepare("SELECT COUNT(*) as cnt FROM users WHERE referrer_id=?").bind(userId).first();
       const referralOrderCount = await env.DB.prepare("SELECT COUNT(*) as cnt FROM referral_orders WHERE distributor_id=?").bind(userId).first();
+      const recentOrders = await env.DB.prepare(`
+        SELECT ro.*,o.pay_amount,o.create_at as order_create_at,u.phone as user_phone,g.title as goods_title
+        FROM referral_orders ro
+        LEFT JOIN orders o ON ro.order_id = o.trade_id
+        LEFT JOIN users u ON ro.user_id = u.id
+        LEFT JOIN goods g ON o.goods_id = g.id
+        WHERE ro.distributor_id = ?
+        ORDER BY ro.create_at DESC
+        LIMIT 10
+      `).bind(userId).all();
 
       return json({code:0,data:{
         ...distributor,
         referralCount: referralCount.cnt,
         referralOrderCount: referralOrderCount.cnt,
         totalCommission: distributor.total_commission,
-        availableCommission: distributor.available_commission
+        availableCommission: distributor.available_commission,
+        recentOrders: recentOrders.results
       }});
     }
 
@@ -552,22 +564,35 @@ export default {
       return json({code:0,data:res.results});
     }
 
-    if (path === "/api/distributor/withdraw" && request.method === "POST") {
-      const body = await request.json();
-      const userId = Number(body.userId);
-      const amount = Number(body.amount);
+    if (path === "/api/distributor/withdraw") {
+      if (request.method === "GET") {
+        const params = new URLSearchParams(url.search);
+        const userId = params.get("userId");
+        if (!userId) return json({code:-1,msg:"参数错误"});
+        
+        const distributor = await env.DB.prepare("SELECT available_commission FROM distributors WHERE user_id=?").bind(userId).first();
+        if (!distributor) return json({code:-1,msg:"您还不是分销员"});
+        
+        return json({code:0,data:{availableCommission: distributor.available_commission}});
+      }
+      
+      if (request.method === "POST") {
+        const body = await request.json();
+        const userId = Number(body.userId);
+        const amount = Number(body.amount);
 
-      if (!userId || !amount) return json({code:-1,msg:"参数错误"});
-      if (amount < 10) return json({code:-1,msg:"最低提现金额为10元"});
+        if (!userId || !amount) return json({code:-1,msg:"参数错误"});
+        if (amount < 50) return json({code:-1,msg:"最低提现金额为50元"});
 
-      const distributor = await env.DB.prepare("SELECT available_commission FROM distributors WHERE user_id=?").bind(userId).first();
-      if (!distributor) return json({code:-1,msg:"您还不是分销员"});
-      if (distributor.available_commission < amount) return json({code:-1,msg:"可提现余额不足"});
+        const distributor = await env.DB.prepare("SELECT available_commission FROM distributors WHERE user_id=?").bind(userId).first();
+        if (!distributor) return json({code:-1,msg:"您还不是分销员"});
+        if (distributor.available_commission < amount) return json({code:-1,msg:"可提现余额不足"});
 
-      await env.DB.prepare("UPDATE distributors SET available_commission = available_commission - ? WHERE user_id=?")
-        .bind(amount, userId).run();
+        await env.DB.prepare("UPDATE distributors SET available_commission = available_commission - ? WHERE user_id=?")
+          .bind(amount, userId).run();
 
-      return json({code:0,msg:"提现申请已提交，将在3个工作日内到账"});
+        return json({code:0,msg:"提现申请已提交，将在3个工作日内到账"});
+      }
     }
 
     if (path === "/api/referrer/check") {
@@ -760,7 +785,7 @@ async function generateInviteCode(env) {
 }
 
 async function handleReferralCommission(env, order) {
-  const distributor = await env.DB.prepare("SELECT id,commission_rate FROM distributors WHERE user_id=? AND status=1").bind(order.referrer_id).first();
+  const distributor = await env.DB.prepare("SELECT id,commission_rate FROM distributors WHERE user_id=?").bind(order.referrer_id).first();
   if (!distributor) return;
 
   const commissionAmount = parseFloat((order.pay_amount * distributor.commission_rate).toFixed(2));
