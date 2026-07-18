@@ -141,7 +141,7 @@ function filterGoods() {
   renderGoods(filtered);
 }
 
-const apiPrefix = "https://api.minicode.cloud";
+const apiPrefix = "/api"; // ponytail: use same-domain Pages Functions
 
 async function buy(goodsId) {
   if (!currentUser) {
@@ -174,57 +174,65 @@ async function buy(goodsId) {
     const payConfirmBtn = document.getElementById("payConfirmBtn");
     
     payBody.innerHTML = `
-      <p style="font-size:16px;font-weight:600;margin-bottom:16px">微信扫码支付</p>
-      <p><strong>商品名称：</strong>${goods.title}</p>
-      <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${res.data.finalPrice.toFixed(2)}</span></p>
-      <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
-      <div style="margin-top:16px;text-align:center">
-        <img src="${res.data.payUrl}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
-        <p style="margin-top:8px;color:#718096;font-size:13px">请使用微信扫码支付</p>
-      </div>
-    `;
+        <p style="font-size:16px;font-weight:600;margin-bottom:16px">微信扫码支付</p>
+        <p><strong>商品名称：</strong>${goods.title}</p>
+        <p style="margin-top:8px"><strong>支付金额：</strong><span style="color:#E53E3E;font-size:18px;font-weight:600">¥${res.data.finalPrice.toFixed(2)}</span></p>
+        <p style="margin-top:8px"><strong>订单号：</strong>${tradeNo}</p>
+        <div style="margin-top:16px;text-align:center">
+          <img src="${res.data.qrcodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(res.data.payUrl)}" alt="支付二维码" style="max-width:280px;width:100%;border-radius:8px" />
+          <p style="margin-top:8px;color:#718096;font-size:13px">请使用微信扫码支付</p>
+        </div>
+      `;
     
     let paid = false;
     
-    payConfirmBtn.onclick = () => {
-      if (paid) {
-        payModal.classList.remove("show");
-        return;
-      }
-      alert("请扫码完成支付后点击确认");
-    };
-    
     payModal.classList.add("show");
     
-    const checkPay = async () => {
+    const checkPay = async (forceVerify) => {
       try {
         const orderRes = await fetch(`${apiPrefix}/order/${tradeNo}`).then(r => r.json());
         if (orderRes.code === 0 && orderRes.data && orderRes.data.status === 1) {
-          paid = true;
-          payModal.classList.remove("show");
-          
-          const order = orderRes.data;
-          currentPanLink = order.pan_link || "https://pan.baidu.com/s/1234567890abcdef";
-          currentPanCode = order.pan_code || "gk" + goodsId;
-          
-          const successModal = document.getElementById("orderModal");
-          const body = document.getElementById("orderBody");
-          const copyBtn = document.getElementById("copyBtn");
-          
-          body.innerHTML = `
-            <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
-            <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
-            <p style="margin-top:8px"><strong>支付金额：</strong>¥${order.pay_amount.toFixed(2)}</p>
-            <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
-            <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
-            <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
-          `;
-          copyBtn.style.display = "block";
-          successModal.classList.add("show");
-          return true;
+          return showPaySuccess(orderRes.data, goods);
+        }
+        // 本地未支付时，主动向虎皮椒查询
+        if (forceVerify) {
+          const verifyRes = await fetch(`${apiPrefix}/verify-payment`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({tradeNo})
+          }).then(r=>r.json());
+          if (verifyRes.code === 0 && verifyRes.data && verifyRes.data.paid) {
+            return showPaySuccess(verifyRes.data.order, goods);
+          }
         }
       } catch(e) {}
       return false;
+    };
+    
+    function showPaySuccess(order, goods) {
+      paid = true;
+      payModal.classList.remove("show");
+      currentPanLink = order.pan_link || "https://pan.baidu.com/s/1234567890abcdef";
+      currentPanCode = order.pan_code || "gk" + goodsId;
+      const m = document.getElementById("orderModal");
+      const b = document.getElementById("orderBody");
+      const c = document.getElementById("copyBtn");
+      b.innerHTML = `
+        <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
+        <p style="margin-top:12px"><strong>商品名称：</strong>${goods.title}</p>
+        <p style="margin-top:8px"><strong>支付金额：</strong>¥${Number(order.pay_amount).toFixed(2)}</p>
+        <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
+        <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
+        <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
+      `;
+      c.style.display = "block";
+      m.classList.add("show");
+      return true;
+    }
+    
+    payConfirmBtn.onclick = async () => {
+      if (paid) { payModal.classList.remove("show"); return; }
+      const ok = await checkPay(true);
+      if (!ok) alert("暂未检测到支付，请确认已扫码完成支付");
     };
     
     const interval = setInterval(async () => {
@@ -289,44 +297,52 @@ async function buyMember(level) {
     
     let paid = false;
     
-    payConfirmBtn.onclick = () => {
-      if (paid) {
-        payModal.classList.remove("show");
-        return;
-      }
-      alert("请扫码完成支付后点击确认");
-    };
-    
     payModal.classList.add("show");
     
-    const checkPay = async () => {
+    const checkPay = async (forceVerify) => {
       try {
         const orderRes = await fetch(`${apiPrefix}/order/${tradeNo}`).then(r => r.json());
         if (orderRes.code === 0 && orderRes.data && orderRes.data.status === 1) {
-          paid = true;
-          payModal.classList.remove("show");
-          
-          currentUser.member = { level: level };
-          localStorage.setItem("gk_user", JSON.stringify(currentUser));
-          updateUserArea();
-          
-          const successModal = document.getElementById("orderModal");
-          const body = document.getElementById("orderBody");
-          const copyBtn = document.getElementById("copyBtn");
-          
-          body.innerHTML = `
-            <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
-            <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
-            <p style="margin-top:8px"><strong>支付金额：</strong>¥${res.data.price}</p>
-            <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
-            <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场优惠</p>
-          `;
-          copyBtn.style.display = "none";
-          successModal.classList.add("show");
-          return true;
+          return showMemberSuccess(orderRes.data);
+        }
+        if (forceVerify) {
+          const verifyRes = await fetch(`${apiPrefix}/verify-payment`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({tradeNo})
+          }).then(r=>r.json());
+          if (verifyRes.code === 0 && verifyRes.data && verifyRes.data.paid) {
+            return showMemberSuccess(verifyRes.data.order);
+          }
         }
       } catch(e) {}
       return false;
+    };
+    
+    function showMemberSuccess(order) {
+      paid = true;
+      payModal.classList.remove("show");
+      currentUser.member = { level: level };
+      localStorage.setItem("gk_user", JSON.stringify(currentUser));
+      updateUserArea();
+      const m = document.getElementById("orderModal");
+      const b = document.getElementById("orderBody");
+      const c = document.getElementById("copyBtn");
+      b.innerHTML = `
+        <p style="color:#279E66;font-weight:600">✅ 支付成功，会员已开通</p>
+        <p style="margin-top:12px"><strong>会员等级：</strong>${config.name}</p>
+        <p style="margin-top:8px"><strong>支付金额：</strong>¥${res.data.price}</p>
+        <p style="margin-top:8px"><strong>有效期：</strong>${config.duration_days}天</p>
+        <p style="margin-top:12px;color:#718096;font-size:13px">您已成功开通${config.name}，可享受全场优惠</p>
+      `;
+      c.style.display = "none";
+      m.classList.add("show");
+      return true;
+    }
+    
+    payConfirmBtn.onclick = async () => {
+      if (paid) { payModal.classList.remove("show"); return; }
+      const ok = await checkPay(true);
+      if (!ok) alert("暂未检测到支付，请确认已扫码完成支付");
     };
     
     const interval = setInterval(async () => {
@@ -579,7 +595,35 @@ function showMyOrders() {
   const modal = document.getElementById("ordersModal");
   const body = document.getElementById("ordersBody");
   modal.classList.add("show");
-  body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>暂无订单</p>";
+  body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>加载中...</p>";
+
+  if (!currentUser) {
+    body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>请先登录</p>";
+    return;
+  }
+
+  fetch(`${apiPrefix}/myorders?userId=${currentUser.id}`).then(r=>r.json()).then(res => {
+    if (res.code !== 0 || !res.data || res.data.length === 0) {
+      body.innerHTML = "<p style='text-align:center;color:#A0AEC0;padding:40px 0'>暂无订单</p>";
+      return;
+    }
+    body.innerHTML = res.data.map(o => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #E2E8F0">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${o.goods_title || '资料'}</div>
+          <div style="font-size:12px;color:#718096;margin-top:4px">订单号：${o.trade_id}</div>
+          <div style="font-size:12px;color:#718096">金额：¥${Number(o.pay_amount).toFixed(2)}</div>
+          <div style="font-size:12px;color:#718096">${o.create_at}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;${o.status === 1 ? 'color:#279E66' : 'color:#A0AEC0'}">${o.status === 1 ? '✅ 已支付' : '待支付'}</div>
+          <button class="buy-btn" style="padding:4px 12px;font-size:12px;margin-top:6px" onclick="closeOrdersModal();showOrder('${o.trade_id}')">查看</button>
+        </div>
+      </div>
+    `).join("");
+  }).catch(() => {
+    body.innerHTML = "<p style='text-align:center;color:#E53E3E;padding:40px 0'>加载失败，请刷新重试</p>";
+  });
 }
 
 function closeOrdersModal() {
@@ -592,8 +636,34 @@ function showOrder(tid) {
   const copyBtn = document.getElementById("copyBtn");
   copyBtn.style.display = "none";
 
-  body.innerHTML = "<p>❌ 未查询到该订单，请核对订单编号</p>";
+  body.innerHTML = "<p>⏳ 正在查询订单...</p>";
   modal.classList.add("show");
+
+  fetch(`${apiPrefix}/order/${tid}`).then(r=>r.json()).then(res => {
+    if (res.code !== 0 || !res.data) {
+      body.innerHTML = "<p>❌ 未查询到该订单，请核对订单编号</p>";
+      return;
+    }
+    const o = res.data;
+    if (o.status !== 1) {
+      body.innerHTML = `<p>❌ 订单未支付（状态：${o.status === 0 ? '待支付' : '未知'}）</p>`;
+      return;
+    }
+    currentPanLink = o.pan_link || "";
+    currentPanCode = o.pan_code || "";
+    body.innerHTML = `
+      <p style="color:#279E66;font-weight:600">✅ 支付成功，资料已解锁</p>
+      <p style="margin-top:12px"><strong>商品名称：</strong>${o.goods_title || '资料'}</p>
+      <p style="margin-top:8px"><strong>支付金额：</strong>¥${Number(o.pay_amount).toFixed(2)}</p>
+      <p style="margin-top:8px"><strong>订单编号：</strong>${o.trade_id}</p>
+      <p style="margin-top:12px"><strong>网盘链接：</strong><a target="_blank" href="${currentPanLink}">${currentPanLink}</a></p>
+      <p style="margin-top:8px"><strong>提取码：</strong>${currentPanCode}</p>
+      <p style="margin-top:12px;color:#718096;font-size:13px">请妥善保存链接与提取码，链接失效可凭订单号申请补发</p>
+    `;
+    if (currentPanLink) copyBtn.style.display = "block";
+  }).catch(() => {
+    body.innerHTML = "<p>❌ 查询失败，请检查网络后重试</p>";
+  });
 }
 
 function closeModal() {
@@ -621,3 +691,4 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   await navigator.clipboard.writeText(text);
   alert("复制成功，可直接粘贴使用");
 });
+// deploy: 20260717230939

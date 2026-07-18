@@ -43,6 +43,43 @@ export async function onRequest(context) {
     return "GK" + Date.now().toString(36).toUpperCase();
   }
 
+  async function md5Hex(str){
+    const buf = await crypto.subtle.digest("MD5",new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  async function handleReferralCommission(env, order) {
+    const distributor = await env.DB.prepare("SELECT id,commission_rate FROM distributors WHERE user_id=? AND status=1").bind(order.referrer_id).first();
+    if (!distributor) return;
+    const commissionAmount = parseFloat((order.pay_amount * distributor.commission_rate).toFixed(2));
+    await env.DB.prepare("INSERT INTO referral_orders (order_id,user_id,distributor_id,commission_amount,status) VALUES (?,?,?,?,?)")
+      .bind(order.trade_id, order.user_id, order.referrer_id, commissionAmount, 0).run();
+    await env.DB.prepare("UPDATE distributors SET total_commission = total_commission + ?, available_commission = available_commission + ? WHERE user_id=?")
+      .bind(commissionAmount, commissionAmount, order.referrer_id).run();
+  }
+
+  async function updateMemberTotalSpent(env, userId, amount) {
+    await env.DB.prepare("UPDATE members SET total_spent = total_spent + ?, update_at = CURRENT_TIMESTAMP WHERE user_id=?")
+      .bind(amount, userId).run();
+  }
+
+  async function handleMemberPurchase(env, userId, level) {
+    const config = await env.DB.prepare("SELECT duration_days FROM member_config WHERE level=?").bind(level).first();
+    if (!config) return;
+    const existingMember = await env.DB.prepare("SELECT expire_at FROM members WHERE user_id=?").bind(userId).first();
+    let expireAt;
+    if (existingMember && existingMember.expire_at) {
+      const currentExpire = new Date(existingMember.expire_at);
+      const now = new Date();
+      const baseDate = currentExpire > now ? currentExpire : now;
+      expireAt = new Date(baseDate.getTime() + config.duration_days * 24 * 60 * 60 * 1000).toISOString();
+    } else {
+      expireAt = new Date(Date.now() + config.duration_days * 24 * 60 * 60 * 1000).toISOString();
+    }
+    await env.DB.prepare("UPDATE members SET level=?, expire_at=?, update_at=CURRENT_TIMESTAMP WHERE user_id=?")
+      .bind(level, expireAt, userId).run();
+  }
+
   if (path === "/api/callback" && request.method === "POST") {
     let callbackData;
     const contentType = request.headers.get('content-type') || '';
@@ -86,12 +123,13 @@ export async function onRequest(context) {
       }
     }
 
-    if (callbackData.trade_status !== 'TRADE_SUCCESS') {
-      console.log('非成功状态:', callbackData.trade_status);
+    // 文档: status=OD(已支付),WP(待支付),CD(已取消)
+    if (callbackData.status !== 'OD') {
+      console.log('非成功状态:', callbackData.status);
       return new Response('success', { headers: { 'Content-Type': 'text/plain' } });
     }
 
-    const tradeNo = callbackData.out_trade_order_no || callbackData.trade_order_id;
+    const tradeNo = callbackData.trade_order_id;
     const body = callbackData.attach;
 
     const orderRes = await env.DB.prepare("SELECT * FROM orders WHERE trade_id = ?").bind(tradeNo).first();
@@ -107,18 +145,18 @@ export async function onRequest(context) {
 
     await env.DB.prepare("UPDATE orders SET status=1,pay_at=CURRENT_TIMESTAMP WHERE trade_id=?").bind(tradeNo).run();
 
-    if (orderRes.goods_id === 0 && body && body.startsWith("VIP_")) {
-      const level = Number(body.split("_")[1]);
-      await handleMemberPurchase(env, orderRes.user_id, level);
-    }
-
-    if (orderRes.referrer_id > 0) {
-      await handleReferralCommission(env, orderRes);
-    }
-
-    if (orderRes.user_id > 0) {
-      await updateMemberTotalSpent(env, orderRes.user_id, orderRes.pay_amount);
-    }
+    try { // ponytail: ancillary ops must not break the callback
+      if (orderRes.goods_id === 0 && body && body.startsWith("VIP_")) {
+        const level = Number(body.split("_")[1]);
+        await handleMemberPurchase(env, orderRes.user_id, level);
+      }
+      if (orderRes.referrer_id > 0) {
+        await handleReferralCommission(env, orderRes);
+      }
+      if (orderRes.user_id > 0) {
+        await updateMemberTotalSpent(env, orderRes.user_id, orderRes.pay_amount);
+      }
+    } catch(e) { console.error('回调后续处理失败:', e.message); }
 
     return new Response('success', { headers: { 'Content-Type': 'text/plain' } });
   }
@@ -193,6 +231,48 @@ export async function onRequest(context) {
     }
 
     return json({code:0,data:{payUrl:result.url || result.url_qrcode || '',tradeNo:outTradeNo,finalPrice}});
+  }
+
+  // 主动向虎皮椒查询支付状态，替代依赖回调
+  if (path === "/api/verify-payment" && request.method === "POST") {
+    const body = await request.json();
+    const tradeNo = body.tradeNo;
+    if (!tradeNo) return json({code:-1,msg:"缺少订单号"});
+
+    const order = await env.DB.prepare("SELECT * FROM orders WHERE trade_id=?").bind(tradeNo).first();
+    if (!order) return json({code:-1,msg:"订单不存在"});
+    if (order.status === 1) {
+      const full = await env.DB.prepare("SELECT o.*,c.pan_link,c.pan_code,g.title as goods_title FROM orders o LEFT JOIN card c ON o.card_id=c.id LEFT JOIN goods g ON o.goods_id=g.id WHERE o.trade_id=?").bind(tradeNo).first();
+      return json({code:0,data:{paid:true,order:full}});
+    }
+
+    const qParams = {
+      appid: hupiAppId,
+      out_trade_order: tradeNo,
+      time: Math.floor(Date.now() / 1000).toString(),
+      nonce_str: Math.random().toString(36).substring(2, 14)
+    };
+    const qSignStr = Object.keys(qParams).sort().filter(k=>qParams[k]).map(k=>`${k}=${qParams[k]}`).join('&') + hupiAppSecret;
+    const qEnc = new TextEncoder().encode(qSignStr);
+    const qBuf = await crypto.subtle.digest('MD5', qEnc);
+    const qHash = Array.from(new Uint8Array(qBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    qParams.hash = qHash;
+
+    try {
+      const qRes = await fetch('https://api.xunhupay.com/payment/query.html', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(qParams)
+      });
+      const qResult = await qRes.json();
+      // 文档: data.status=OD(支付成功),WP(待支付),CD(已取消)
+      if (qResult.errcode === 0 && qResult.data && qResult.data.status === 'OD') {
+        await env.DB.prepare("UPDATE orders SET status=1,pay_at=CURRENT_TIMESTAMP WHERE trade_id=?").bind(tradeNo).run();
+        const full = await env.DB.prepare("SELECT o.*,c.pan_link,c.pan_code,g.title as goods_title FROM orders o LEFT JOIN card c ON o.card_id=c.id LEFT JOIN goods g ON o.goods_id=g.id WHERE o.trade_id=?").bind(tradeNo).first();
+        return json({code:0,data:{paid:true,order:full}});
+      }
+    } catch(e) {}
+    return json({code:0,data:{paid:false}});
   }
 
   if (path.startsWith("/api/order/")) {
@@ -639,48 +719,6 @@ export async function onRequest(context) {
   }
 
   return new Response("Not Found",{status:404});
-
-  async function md5Hex(str){
-    const buf = await crypto.subtle.digest("MD5",new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-  }
-
-  async function handleReferralCommission(env, order) {
-    const distributor = await env.DB.prepare("SELECT id,commission_rate FROM distributors WHERE user_id=? AND status=1").bind(order.referrer_id).first();
-    if (!distributor) return;
-
-    const commissionAmount = parseFloat((order.pay_amount * distributor.commission_rate).toFixed(2));
-    await env.DB.prepare("INSERT INTO referral_orders (order_id,user_id,distributor_id,commission_amount,status) VALUES (?,?,?,?,?)")
-      .bind(order.trade_id, order.user_id, order.referrer_id, commissionAmount, 0).run();
-
-    await env.DB.prepare("UPDATE distributors SET total_commission = total_commission + ?, available_commission = available_commission + ? WHERE user_id=?")
-      .bind(commissionAmount, commissionAmount, order.referrer_id).run();
-  }
-
-  async function updateMemberTotalSpent(env, userId, amount) {
-    await env.DB.prepare("UPDATE members SET total_spent = total_spent + ?, update_at = CURRENT_TIMESTAMP WHERE user_id=?")
-      .bind(amount, userId).run();
-  }
-
-  async function handleMemberPurchase(env, userId, level) {
-    const config = await env.DB.prepare("SELECT duration_days FROM member_config WHERE level=?").bind(level).first();
-    if (!config) return;
-
-    const existingMember = await env.DB.prepare("SELECT expire_at FROM members WHERE user_id=?").bind(userId).first();
-    let expireAt;
-
-    if (existingMember && existingMember.expire_at) {
-      const currentExpire = new Date(existingMember.expire_at);
-      const now = new Date();
-      const baseDate = currentExpire > now ? currentExpire : now;
-      expireAt = new Date(baseDate.getTime() + config.duration_days * 24 * 60 * 60 * 1000).toISOString();
-    } else {
-      expireAt = new Date(Date.now() + config.duration_days * 24 * 60 * 60 * 1000).toISOString();
-    }
-
-    await env.DB.prepare("UPDATE members SET level=?, expire_at=?, update_at=CURRENT_TIMESTAMP WHERE user_id=?")
-      .bind(level, expireAt, userId).run();
-  }
 
   } catch (e) {
     return new Response(JSON.stringify({code:-1,msg:"服务器错误:"+e.message}),{status:500,headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});

@@ -52,15 +52,16 @@ gk-minicode/
 ```
 用户访问 → gk.minicode.cloud（CF代理）
 ├─ 页面静态资源 → Cloudflare Pages 前端商城
-├─ /api/* 接口请求 → 转发至 Cloudflare Workers
+├─ /api/* 接口请求 → Pages Functions（同域名，无跨域）
 │  ├─ 用户注册/登录 /api/register /api/login
-│  ├─ 密码找回 /api/reset-pwd
-│  ├─ 会员购买 /api/buy-member
-│  ├─ 分销申请 /api/apply-distributor
-│  ├─ 支付回调 /api/callback
-│  ├─ 创建订单 /api/createorder
+│  ├─ 订单创建/查询 /api/createorder /api/order/:tid
+│  ├─ 支付回调 /api/callback（虎皮椒异步通知）
+│  ├─ 主动查支付 /api/verify-payment（备用方案）
+│  ├─ 会员购买 /api/member/buy
+│  ├─ 我的订单 /api/myorders
 │  └─ 后台管理 /api/admin
-└─ 数据持久层：D1 SQLite数据库（用户表、会员表、分销商表、订单表、卡密表）
+├─ Worker 定时任务（每月生成时政汇总，独立部署）
+└─ 数据持久层：D1 SQLite数据库（用户、会员、分销商、订单、卡密表）
 ```
 
 ### 技术栈
@@ -68,9 +69,9 @@ gk-minicode/
 | 模块 | 技术 | 说明 |
 |------|------|------|
 | 前端 | HTML5 + CSS3 + JavaScript | 纯静态，无需构建工具 |
-| 后端 | Cloudflare Workers | Serverless，自动扩缩容 |
+| 后端 | Cloudflare Pages Functions | Serverless，同域名处理，无跨域 |
 | 数据库 | Cloudflare D1 | SQLite 兼容，零维护 |
-| 支付 | 虎皮椒聚合支付 | 支持微信、支付宝 |
+| 支付 | 虎皮椒聚合支付 | 仅微信支付（回调字段注意 status=OD） |
 | 存储 | 百度网盘 | 文件分发，按流量计费 |
 | 版本控制 | GitHub + Git Tags | 代码备份与版本回滚 |
 

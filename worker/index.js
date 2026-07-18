@@ -54,12 +54,13 @@ export default {
         }
       }
 
-      if (callbackData.trade_status !== 'TRADE_SUCCESS') {
-        console.log('非成功状态:', callbackData.trade_status);
+      // 文档: status=OD(已支付),WP(待支付),CD(已取消)
+      if (callbackData.status !== 'OD') {
+        console.log('非成功状态:', callbackData.status);
         return new Response('success', { headers: { 'Content-Type': 'text/plain' } });
       }
 
-      const tradeNo = callbackData.out_trade_order_no || callbackData.trade_order_id;
+      const tradeNo = callbackData.trade_order_id;
       const body = callbackData.attach;
 
       const orderRes = await env.DB.prepare("SELECT * FROM orders WHERE trade_id = ?").bind(tradeNo).first();
@@ -114,17 +115,14 @@ export default {
 
       let cardId = 0;
       try {
-        await env.DB.transaction(async tx => {
-          const card = await tx.prepare("SELECT id FROM card WHERE goods_id=? AND is_used=0 LIMIT 1").bind(goodsId).first();
-          if (!card) throw new Error("no_card");
-          cardId = card.id;
-          await tx.prepare("UPDATE card SET is_used=1 WHERE id=?").bind(card.id).run();
-          await tx.prepare("INSERT INTO orders (trade_id,goods_id,card_id,user_id,referrer_id,pay_amount) VALUES (?,?,?,?,?,?)")
-            .bind(outTradeNo, goodsId, card.id, userId, referrerId, finalPrice).run();
-        });
+        const cardRow = await env.DB.prepare("SELECT id FROM card WHERE goods_id=? AND is_used=0 LIMIT 1").bind(goodsId).first();
+        if (!cardRow) return json({code:-1,msg:"商品库存不足"});
+        cardId = cardRow.id;
+        await env.DB.prepare("UPDATE card SET is_used=1 WHERE id=?").bind(cardRow.id).run();
+        await env.DB.prepare("INSERT INTO orders (trade_id,goods_id,card_id,user_id,referrer_id,pay_amount) VALUES (?,?,?,?,?,?)")
+          .bind(outTradeNo, goodsId, cardRow.id, userId, referrerId, finalPrice).run();
       } catch (e) {
-        if (e.message === "no_card") return json({code:-1,msg:"商品库存不足"});
-        return json({code:-1,msg:"创建订单失败，请重试"});
+        return json({code:-1,msg:"创建订单失败:" + e.message});
       }
 
       const notifyUrl = `${siteDomain}/api/callback`;
@@ -674,6 +672,16 @@ export default {
           .bind(gId,link.trim(),code.trim()).run();
       }
       return json({code:0});
+    }
+
+    // init test cards
+    if (path === "/api/init-test-cards") {
+      const count = await env.DB.prepare("SELECT COUNT(*) as c FROM card").first();
+      if (count && count.c > 0) {
+        return json({code:0,msg:"card data exists"});
+      }
+      await initTestCards(env);
+      return json({code:0,msg:"test cards initialized"});
     }
 
     if (path === "/api/admin/goods" && request.method === "PUT") {
