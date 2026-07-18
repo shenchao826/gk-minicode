@@ -460,9 +460,10 @@ function updateUserArea() {
     const memberInfo = currentUser.member || {};
     
     userArea.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="font-size:14px;color:#163D8C">${currentUser.nickname || currentUser.phone}</span>
         ${memberInfo.level > 0 ? `<span style="background:#E67722;color:#fff;font-size:12px;padding:2px 8px;border-radius:10px">会员</span>` : ""}
+        <button class="login-btn" style="background:#EDF2F7;color:#4A5568" onclick="openDistModal()">💰 分销</button>
         <button class="login-btn" style="background:#EDF2F7;color:#4A5568" onclick="showMyOrders()">📋 订单</button>
         <button class="login-btn" style="background:#EDF2F7;color:#4A5568" onclick="logout()">退出</button>
       </div>
@@ -683,7 +684,7 @@ function openDistModal() {
 
   fetch(`${apiPrefix}/distributor/info?userId=${currentUser.id}`).then(r => r.json()).then(res => {
     if (res.code !== 0) {
-      infoDiv.innerHTML = `<p style='text-align:center;color:#E53E3E'>${res.msg}</p>`;
+      infoDiv.innerHTML = `<p style='text-align:center;color:#E53E3E'>${res.msg}</p><div style="text-align:center;margin-top:16px"><button class="buy-btn" onclick="closeDistModal();applyDistributor()">申请成为分销员</button></div>`;
       document.getElementById("applyDistBtn").style.display = "inline-block";
       document.getElementById("viewDistBtn").style.display = "none";
       return;
