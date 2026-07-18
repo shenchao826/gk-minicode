@@ -1,5 +1,11 @@
 {
   "version": 1,
   "include": ["/api/*"],
-  "exclude": []
+  "exclude": [],
+  "rules": [
+    {
+      "pattern": "/api/*",
+      "target": "functions"
+    }
+  ]
 }
