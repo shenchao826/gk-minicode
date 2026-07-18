@@ -491,12 +491,15 @@ export async function onRequest(context) {
     const userId = Number(body.userId);
     if (!userId) return json({code:-1,msg:"参数错误"});
 
-    const exist = await env.DB.prepare("SELECT id FROM distributors WHERE user_id=?").bind(userId).first();
-    if (exist) return json({code:-1,msg:"您已申请过分销员"});
-
-    const inviteCode = await generateInviteCode(env);
-    await env.DB.prepare("INSERT INTO distributors (user_id,status,commission_rate,invite_code) VALUES (?,?,?,?)")
-      .bind(userId, 1, 0.30, inviteCode).run();
+    const exist = await env.DB.prepare("SELECT id,status FROM distributors WHERE user_id=?").bind(userId).first();
+    if (exist) {
+      if (exist.status === 1) return json({code:-1,msg:"您已经是分销员"});
+      await env.DB.prepare("UPDATE distributors SET status=1,commission_rate=0.30 WHERE user_id=?").bind(userId).run();
+    } else {
+      const inviteCode = await generateInviteCode(env);
+      await env.DB.prepare("INSERT INTO distributors (user_id,status,commission_rate,invite_code) VALUES (?,?,?,?)")
+        .bind(userId, 1, 0.30, inviteCode).run();
+    }
 
     const user = await env.DB.prepare("SELECT id,phone,nickname,member_level,member_expire_at FROM users WHERE id=?").bind(userId).first();
     const distributor = await env.DB.prepare("SELECT status,commission_rate,total_commission,available_commission,invite_code as dist_code FROM distributors WHERE user_id=?").bind(userId).first();
