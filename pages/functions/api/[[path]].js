@@ -52,7 +52,7 @@ export async function onRequest(context) {
     const distributor = await env.DB.prepare("SELECT id,commission_rate FROM distributors WHERE user_id=?").bind(order.referrer_id).first();
     if (!distributor) return;
     const commissionAmount = parseFloat((order.pay_amount * distributor.commission_rate).toFixed(2));
-    await env.DB.prepare("INSERT INTO referral_orders (order_id,user_id,distributor_id,commission_amount,status) VALUES (?,?,?,?,?)")
+    await env.DB.prepare("INSERT INTO referral_orders (order_id,user_id,referrer_id,commission,status) VALUES (?,?,?,?,?)")
       .bind(order.trade_id, order.user_id, order.referrer_id, commissionAmount, 0).run();
     await env.DB.prepare("UPDATE distributors SET total_commission = total_commission + ?, available_commission = available_commission + ? WHERE user_id=?")
       .bind(commissionAmount, commissionAmount, order.referrer_id).run();
@@ -512,14 +512,14 @@ export async function onRequest(context) {
     if (!distributor) return json({code:-1,msg:"您还不是分销员"});
 
     const referralCount = await env.DB.prepare("SELECT COUNT(*) as cnt FROM users WHERE referrer_id=?").bind(userId).first();
-    const referralOrderCount = await env.DB.prepare("SELECT COUNT(*) as cnt FROM referral_orders WHERE distributor_id=?").bind(userId).first();
+    const referralOrderCount = await env.DB.prepare("SELECT COUNT(*) as cnt FROM referral_orders WHERE referrer_id=?").bind(userId).first();
     const recentOrders = await env.DB.prepare(`
       SELECT ro.*,o.pay_amount,o.create_at as order_create_at,u.phone as user_phone,g.title as goods_title
       FROM referral_orders ro
       LEFT JOIN orders o ON ro.order_id = o.trade_id
       LEFT JOIN users u ON ro.user_id = u.id
       LEFT JOIN goods g ON o.goods_id = g.id
-      WHERE ro.distributor_id = ?
+      WHERE ro.referrer_id = ?
       ORDER BY ro.create_at DESC
       LIMIT 10
     `).bind(userId).all();
@@ -546,7 +546,7 @@ export async function onRequest(context) {
       FROM referral_orders ro
       LEFT JOIN orders o ON ro.order_id = o.trade_id
       LEFT JOIN users u ON ro.user_id = u.id
-      WHERE ro.distributor_id = ?
+      WHERE ro.referrer_id = ?
     `;
     const binds = [userId];
 
@@ -676,7 +676,7 @@ export async function onRequest(context) {
       FROM referral_orders ro
       LEFT JOIN orders o ON ro.order_id = o.trade_id
       LEFT JOIN users u ON ro.user_id = u.id
-      LEFT JOIN users du ON ro.distributor_id = du.id
+      LEFT JOIN users du ON ro.referrer_id = du.id
       ORDER BY ro.create_at DESC
     `).all();
     return json({code:0,data:res.results});
@@ -693,9 +693,17 @@ export async function onRequest(context) {
       return json({code:0});
     }
 
-    const res = await env.DB.prepare(`
-      SELECT w.*,u.phone,u.nickname FROM withdrawals w LEFT JOIN users u ON w.user_id=u.id ORDER BY w.create_at DESC
-    `).all();
+    const statusParam = url.searchParams.get("status");
+    let query = `
+      SELECT w.*,u.phone,u.nickname FROM withdrawals w LEFT JOIN users u ON w.user_id=u.id
+    `;
+    const binds = [];
+    if (statusParam !== undefined && statusParam !== "") {
+      query += " WHERE w.status=?";
+      binds.push(statusParam);
+    }
+    query += " ORDER BY w.create_at DESC";
+    const res = await env.DB.prepare(query).bind(...binds).all();
     return json({code:0,data:res.results});
   }
 

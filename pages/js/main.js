@@ -721,7 +721,7 @@ function openDistModal() {
       ordersDiv.style.display = "none";
     }
     
-    if (d.available_commission >= 10) {
+    if (d.available_commission >= 50) {
       withdrawDiv.style.display = "block";
     }
   }).catch(e => {

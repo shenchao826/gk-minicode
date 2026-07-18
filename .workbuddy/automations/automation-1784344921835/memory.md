@@ -14,6 +14,10 @@
 
 [12:24] STEP-7 [多平台同步]: ✅成功(公众号HTML+MD已复制到D:\Documents\Obsidian Vault\自媒体发表素材\公众号\20260718_行测取舍\；小红书文案已生成xiaohongshu_post.md；闲鱼商品描述已生成product_description.txt)
 
+[12:30] NETWORK FIX: 发现代理错误根因 — Windows进程级环境变量 HTTP_PROXY/HTTPS_PROXY 值为 "http://http://127.0.0.1:31181"（重复"http://"前缀），导致所有curl请求将"http"视为主机名而解析失败。清除代理变量后直连Baidu/Sogou均HTTP 200成功
+
+[12:35] RE-RUN STEP-2 [情报搜索]: ✅成功(proxy已修复)
+
 ========================================
 
 ## 工作简报
